@@ -205,4 +205,7 @@ def is_valid_npi(npi):
 
 
 def ensure_dir(folder):
-    Path(folder).mkdir(parents=True, exist_ok=True)
+    try:
+        Path(folder).mkdir(parents=True, exist_ok=True)
+    except (PermissionError, OSError):
+        pass
