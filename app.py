@@ -41,7 +41,8 @@ def index():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    if request.path.startswith("/api/"):
+    api_endpoints = ("/api/upload", "/api/sample", "/api/verify", "/api/process", "/api/download")
+    if any(request.path.startswith(prefix) for prefix in api_endpoints):
         return jsonify({"error": "Endpoint not found"}), 404
     return render_template("index.html"), 200
 
