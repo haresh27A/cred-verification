@@ -33,6 +33,7 @@ SESSIONS = {}
 
 
 @app.route("/")
+@app.route("/index")
 def index():
     """Render main application UI."""
     return render_template("index.html")
