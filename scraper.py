@@ -16,10 +16,14 @@ import urllib.parse
 from urllib.parse import quote_plus
 
 from bs4 import BeautifulSoup
-from playwright.sync_api import (
-    sync_playwright,
-    TimeoutError as PlaywrightTimeout,
-)
+try:
+    from playwright.sync_api import (
+        sync_playwright,
+        TimeoutError as PlaywrightTimeout,
+    )
+except ImportError:
+    sync_playwright = None
+    PlaywrightTimeout = Exception
 
 logger = logging.getLogger(
     "provider_verification"
