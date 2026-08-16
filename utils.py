@@ -77,14 +77,15 @@ def setup_logger(name="provider_verification", log_file="verification.log"):
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
 
-        file_handler = logging.FileHandler(
-            log_file,
-            encoding="utf-8"
-        )
-        file_handler.setFormatter(formatter)
-
-        logger.addHandler(console_handler)
-        logger.addHandler(file_handler)
+        try:
+            file_handler = logging.FileHandler(
+                log_file,
+                encoding="utf-8"
+            )
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+        except (PermissionError, OSError):
+            pass
 
     return logger
 

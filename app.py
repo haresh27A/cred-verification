@@ -18,7 +18,11 @@ from excel_handler import read_input_file, generate_excel_bytes
 from main import process_dataframe_stream
 from search import validate_existing_npi, verify_provider
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
+app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB max upload limit
 
 logger = setup_logger("web_app", "web_app.log")
@@ -86,7 +90,7 @@ def upload_file():
 @app.route("/api/sample", methods=["GET"])
 def load_sample():
     """Load sample dataset into session for quick testing."""
-    sample_path = "input/sample_input.csv"
+    sample_path = os.path.join(BASE_DIR, "input", "sample_input.csv")
     if not os.path.exists(sample_path):
         return jsonify({"error": "Sample file not found on server."}), 404
 
