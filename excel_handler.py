@@ -19,45 +19,35 @@ def read_input_file(file_source, filename=None):
     Read CSV or Excel file (from file path or file-like bytes object) into pandas DataFrame.
     """
     try:
-        if isinstance(file_source, str):
-            path = file_source.lower()
-            if path.endswith(".csv"):
-                df = pd.read_csv(
-                    file_source,
-                    sep=None,
-                    engine="python",
-                    dtype=str,
-                    keep_default_na=False
-                )
-            elif path.endswith((".xlsx", ".xls")):
-                df = pd.read_excel(
-                    file_source,
-                    dtype=str
-                ).fillna("")
+        if not isinstance(file_source, (str, io.StringIO, io.BytesIO)):
+            content = file_source.read()
+            if isinstance(content, str):
+                file_source = io.StringIO(content)
             else:
-                raise ValueError("Supported formats: .csv, .xlsx, .xls")
-        else:
-            name = (filename or "").lower()
-            if name.endswith(".csv"):
-                df = pd.read_csv(
-                    file_source,
-                    sep=None,
-                    engine="python",
-                    dtype=str,
-                    keep_default_na=False
-                )
-            elif name.endswith((".xlsx", ".xls")):
-                df = pd.read_excel(
-                    file_source,
-                    dtype=str
-                ).fillna("")
-            else:
-                # Default attempt csv then excel
-                try:
-                    df = pd.read_csv(file_source, dtype=str, keep_default_na=False)
-                except Exception:
+                file_source = io.BytesIO(content)
+
+        name = (filename or (file_source if isinstance(file_source, str) else "")).lower()
+
+        if name.endswith(".csv") or isinstance(file_source, (io.StringIO, io.BytesIO)) or (isinstance(file_source, str) and file_source.endswith(".csv")):
+            try:
+                df = pd.read_csv(file_source, sep="\t", dtype=str, keep_default_na=False)
+                if len(df.columns) <= 1:
+                    if hasattr(file_source, "seek"):
+                        file_source.seek(0)
+                    df = pd.read_csv(file_source, sep=",", dtype=str, keep_default_na=False)
+            except Exception:
+                if hasattr(file_source, "seek"):
                     file_source.seek(0)
-                    df = pd.read_excel(file_source, dtype=str).fillna("")
+                df = pd.read_csv(file_source, sep=None, engine="python", dtype=str, keep_default_na=False)
+        elif name.endswith((".xlsx", ".xls")):
+            df = pd.read_excel(file_source, dtype=str).fillna("")
+        else:
+            try:
+                df = pd.read_csv(file_source, dtype=str, keep_default_na=False)
+            except Exception:
+                if hasattr(file_source, "seek"):
+                    file_source.seek(0)
+                df = pd.read_excel(file_source, dtype=str).fillna("")
 
         df.columns = [str(column).strip() for column in df.columns]
         return df
