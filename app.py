@@ -101,16 +101,27 @@ def upload_file():
         return jsonify({"error": f"Failed to process file: {str(e)}"}), 500
 
 
+EMBEDDED_SAMPLE_CSV = """UID\tInput Date\tALLOTED TO\tOutput Status\tOutput Comments\tPENDINGCPNAME\tTYPE\tCredental\tUrl\tNPI1\tNPI 1 Url\tUPDATETOCLINICALPROVIDERID\tSTATUS\tCOMMENTS\tREVIEW STATUS\tPending CPID URL\tSuggested Admin URL\tCONTEXT_ID\tCONTEXT_NAME\tSTACKID\tCREATED\tCREATEDBY\tPENDINGCPID\tPENDINGCPNAME\tNAME\tPRACTICEID\tPROVIDERID\tNOTES\tADDRESS\tCITY\tSTATE\tPHONE\tFAX\tCPDETAILS\tTYPE\tUPDATETOCLINICALPROVIDERID\tEXISTINGCPDETAILS\tCLINICALPROVIDERRECEIVERID\tELECTRONIC_RECEIVER_NAME\tORDER_CODES_FROM\tNCPDPID\tLINKED_WITH_INTERFACE\tDUPLICATE_RECORDS\tFIRSTNAME\tLASTNAME\tMIDDLENAME\tNPI\tZIP\tID\tLINKED_WITH_DOCUMENT\tNAME_LIST\tMARKED\t
+771\t29-07-2026\tSanthiya\tAdded\t\tKRISTY GOODNOUGH, 8042 (new)\tNEW\t\t\t\t\t\t\t\t\t\t\t8042\tVA - Privia Health\t65\t28-07-2026\tatobon1\t-153509C8042\tKRISTY GOODNOUGH, 8042 (new)\tKRISTY GOODNOUGH\t\t\tCreated from CPSW\t3414 OLANDWOOD COURT \tOLNEY\tMD\t(301) 774-0500\t(301) 774-7378\t3414 OLANDWOOD COURT  OLNEY MD (301) 774-0500 (301) 774-7378\tNEW\t\t\t\t\t\t\t\t\tKRISTY\tGOODNOUGH\t\t1649495409\t20832\t-153509\t-153509\tCONSULT\t\t\t\t
+2612\t29-07-2026\tSanthiya\tAdded\t\tKYLE CORBIN, 32523 (new)\tNEW\t\t\t\t\t\t\t\t\t\t\t32523\tMA - Patient Focused Primary Care\t5\t27-07-2026\temedeiros12\t-1121C32523\tKYLE CORBIN, 32523 (new)\tKYLE CORBIN\t\t\tCreated from CPSW\t664 TAUNTON AVE \tSEEKONK\tMA\t(508) 336-4114\t(508) 557-0261\t664 TAUNTON AVE  SEEKONK MA (508) 336-4114 (508) 557-0261\tNEW\t\t\t\t\t\t\t\t\tKYLE\tCORBIN\t\t1962951087\t02771\t-1121\t-1121\tCONSULT\t\t\t\t
+1050\t29-07-2026\tSanthiya\tAdded\t\tLEE, JAMES, 29786 (new)\tNEW\t\t\t\t\t\t\t\t\t\t\t29786\tCA - Alignment Healthcare USA, LLC\t36\t27-07-2026\tpdo20\t-8061C29786\tLEE, JAMES, 29786 (new)\tLEE, JAMES\t\t\tCreated from CPSW\t7248 S LAND PARK DR STE 205 \tSACRAMENTO\tCA\t(916) 392-4000\t(916) 392-2722\t7248 S LAND PARK DR STE 205  SACRAMENTO CA (916) 392-4000 (916) 392-2722\tNEW\t\t\t\t\t\t\t\t\t\t\t\t\t95831\t-8061\t-8061\tCONSULT\t\t\t\t
+995\t29-07-2026\tSanthiya\tAdded\t\tKYLA DIESNER DNP, FNP-C, 1576 (new)\tNEW\t\t\t\t\t\t\t\t\t\t\t1576\tAZ - CHS - NW Allied Physicians, LLC\t27\t28-07-2026\tmmorita\t-8640C1576\tKYLA DIESNER DNP, FNP-C, 1576 (new)\tKYLA DIESNER DNP, FNP-C\t\t\t\t13395 N MARANA MAIN STREET \tMARANA\tAZ\t(520) 682-4111\t(520) 825-6841\t13395 N MARANA MAIN STREET  MARANA AZ (520) 682-4111 (520) 825-6841\tNEW\t\t\t\t\t\t\t\t\t\t\t\t1366476970\t85653\t-8640\t-8640\tALL\t\t\t\t
+552\t29-07-2026\tSanthiya\tAdded\t\tKRYSTEN ASHLEY MESCAN, APRN-CNP, FNP-BC, 27322 (new)\tNEW\t\t\t\t\t\t\t\t\t\t\t27322\tOK - RESTORATIVE HEALTH SOLUTIONS, LLC\t35\t28-07-2026\tralspach5\t-281C27322\tKRYSTEN ASHLEY MESCAN, APRN-CNP, FNP-BC, 27322 (new)\tKRYSTEN ASHLEY MESCAN, APRN-CNP, FNP-BC\t\t\t\t900 N PORTER AVE STE 209\tNORMAN\tOK\t(405) 217-9997\t(405) 307-8520\t900 N PORTER AVE STE 209 NORMAN OK (405) 217-9997 (405) 307-8520\tNEW\t\t\t\t\t\t\t\t\t\t\t\t\t73071\t-281\t\tALL\t\t\t\t
+108\t29-07-2026\tSanthiya\tAdded\t\tLAJOS TOTH MD, 4399 (new)\tNEW\t\t\t\t\t\t\t\t\t\t\t4399\tAL - Upperline Health\t17\t27-07-2026\tssayiner\t-21772C4399\tLAJOS TOTH MD, 4399 (new)\tLAJOS TOTH MD\t\t\tCreated from CPSW\t725 JESSE JEWELL PKWY SE \tGAINESVILLE\tGA\t(770) 535-3611\t(770) 297-5630\t725 JESSE JEWELL PKWY SE  GAINESVILLE GA (770) 535-3611 (770) 297-5630\tNEW\t\t\t\t\t\t\t\t\tLAJOS\tTOTH\t\t1306816467\t30501\t-21772\t-21772\tCONSULT\t\t\t\t
+"""
+
+
 @app.route("/api/sample", methods=["GET", "POST"])
 def load_sample():
     """Load sample dataset into session for quick testing."""
     sample_path = os.path.join(BASE_DIR, "input", "sample_input.csv")
-    if not os.path.exists(sample_path):
-        return jsonify({"error": "Sample file not found on server."}), 404
-
     session_id = str(uuid.uuid4())
     try:
-        df = read_input_file(sample_path)
+        if os.path.exists(sample_path):
+            df = read_input_file(sample_path)
+        else:
+            df = read_input_file(io.StringIO(EMBEDDED_SAMPLE_CSV), filename="sample_input.csv")
+
         df = df.fillna("")
 
         SESSIONS[session_id] = {
@@ -133,6 +144,7 @@ def load_sample():
             "preview": df.head(5).to_dict(orient="records")
         })
     except Exception as e:
+        logger.error(f"Error loading sample dataset: {e}")
         return jsonify({"error": f"Error loading sample dataset: {str(e)}"}), 500
 
 
