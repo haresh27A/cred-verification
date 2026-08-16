@@ -23,6 +23,7 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
+app.url_map.strict_slashes = False
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB max upload limit
 
 logger = setup_logger("web_app", "web_app.log")
@@ -48,7 +49,7 @@ def index():
 def page_not_found(e):
     api_endpoints = ("/api/upload", "/api/sample", "/api/verify", "/api/process", "/api/download")
     if any(request.path.startswith(prefix) for prefix in api_endpoints):
-        return jsonify({"error": "Endpoint not found"}), 404
+        return jsonify({"error": f"Endpoint not found: {request.path}"}), 404
     return render_template("index.html"), 200
 
 
@@ -101,7 +102,7 @@ def upload_file():
         return jsonify({"error": f"Failed to process file: {str(e)}"}), 500
 
 
-@app.route("/api/sample", methods=["GET"])
+@app.route("/api/sample", methods=["GET", "POST"])
 def load_sample():
     """Load sample dataset into session for quick testing."""
     sample_path = os.path.join(BASE_DIR, "input", "sample_input.csv")
