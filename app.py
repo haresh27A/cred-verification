@@ -10,7 +10,7 @@ import json
 import uuid
 import time
 import logging
-from flask import Flask, render_template, request, jsonify, Response, send_file
+from flask import Flask, render_template, request, jsonify, Response, send_file, send_from_directory
 import pandas as pd
 
 from utils import setup_logger
@@ -26,6 +26,11 @@ app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB max upload limit
 
 logger = setup_logger("web_app", "web_app.log")
+
+
+@app.route("/static/<path:filename>")
+def serve_static_assets(filename):
+    return send_from_directory(STATIC_DIR, filename)
 
 # In-memory session cache for active and processed files
 # Format: session_id -> { "df_input": df, "df_output": df, "filename": str, "invalid_npi_rows": [], "mismatch_rows": [], "status": str }
