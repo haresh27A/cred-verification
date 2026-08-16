@@ -39,6 +39,13 @@ def index():
     return render_template("index.html")
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    if request.path.startswith("/api/"):
+        return jsonify({"error": "Endpoint not found"}), 404
+    return render_template("index.html"), 200
+
+
 @app.route("/api/upload", methods=["POST"])
 def upload_file():
     """Handle XLSX / CSV file uploads."""
