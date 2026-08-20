@@ -600,8 +600,8 @@ td.cell-highlight-red {
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <h3 class="card-title" id="tableTitleText">Processed Verification Results</h3>
         <div style="display: flex; gap: 10px;">
-          <a class="btn btn-emerald" id="btnDownloadXlsx" href="#" download="verified_results.xlsx">Download Excel (.xlsx)</a>
-          <a class="btn btn-secondary" id="btnDownloadCsv" href="#" download="verified_results.csv">Download CSV</a>
+          <button class="btn btn-emerald" id="btnDownloadXlsx" onclick="downloadProcessedFile('xlsx')">Download Excel (.xlsx)</button>
+          <button class="btn btn-secondary" id="btnDownloadCsv" onclick="downloadProcessedFile('csv')">Download CSV</button>
         </div>
       </div>
 
@@ -864,18 +864,6 @@ function startVerification() {
       document.getElementById('progressStatusText').innerText = "Verification Complete!";
       document.getElementById('tableTitleText').innerText = "Processed Verification Results";
 
-      const downloadXlsxBtn = document.getElementById('btnDownloadXlsx');
-      const downloadCsvBtn = document.getElementById('btnDownloadCsv');
-      const safeBase = (currentOriginalFilename || "verified_output").replace(/[^a-zA-Z0-9_\-]/g, '_');
-      const xlsxFilename = safeBase + "_verified.xlsx";
-      const csvFilename = safeBase + "_verified.csv";
-
-      downloadXlsxBtn.href = '/api/download/' + currentSessionId + '/' + xlsxFilename + '?format=xlsx';
-      downloadXlsxBtn.setAttribute('download', xlsxFilename);
-
-      downloadCsvBtn.href = '/api/download/' + currentSessionId + '/' + csvFilename + '?format=csv';
-      downloadCsvBtn.setAttribute('download', csvFilename);
-
       if (event.stats) {
         updateStats(event.stats);
         if (event.stats.processing_time_seconds) {
@@ -890,6 +878,40 @@ function startVerification() {
       alert("Processing error: " + event.message);
     }
   };
+}
+
+function downloadProcessedFile(format) {
+  if (!currentSessionId) {
+    alert("Please upload a file and run verification first.");
+    return;
+  }
+
+  const safeBase = (currentOriginalFilename || "verified_output").replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const filename = safeBase + "_verified." + format;
+  const downloadUrl = '/api/download/' + currentSessionId + '/' + filename + '?format=' + format;
+
+  fetch(downloadUrl)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("Download failed (Status " + response.status + ")");
+    }
+    return response.blob();
+  })
+  .then(blob => {
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename; // FORCES EXACT FILENAME WITH .xlsx / .csv EXTENSION IN CHROME
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      window.URL.revokeObjectURL(blobUrl);
+      document.body.removeChild(link);
+    }, 250);
+  })
+  .catch(err => {
+    alert("Download error: " + err.message);
+  });
 }
 
 function fetchResultsTable() {
