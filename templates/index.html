@@ -744,7 +744,12 @@ function uploadFile(file) {
       return;
     }
     currentSessionId = data.session_id;
-    currentOriginalFilename = data.filename ? data.filename.split('.')[0] : "provider_output";
+    if (data.filename) {
+      const dotIndex = data.filename.lastIndexOf('.');
+      currentOriginalFilename = dotIndex !== -1 ? data.filename.substring(0, dotIndex) : data.filename;
+    } else {
+      currentOriginalFilename = "provider_output";
+    }
     document.getElementById('dropzoneTitle').innerText = "Loaded: " + data.filename + " (" + data.row_count + " rows)";
     document.getElementById('btnStartProcess').style.display = 'inline-flex';
     document.getElementById('tableTitleText').innerText = "Uploaded Data Preview";
@@ -888,10 +893,14 @@ function downloadProcessedFile(format) {
 
   const safeBase = (currentOriginalFilename || "provider_output").replace(/[^a-zA-Z0-9_\-]/g, '_');
   const filename = safeBase + "_verified." + format;
-  const downloadUrl = '/api/download/' + currentSessionId + '/' + filename + '?format=' + format;
+  const downloadUrl = '/api/download/' + encodeURIComponent(currentSessionId) + '/' + encodeURIComponent(filename) + '?format=' + encodeURIComponent(format);
 
-  // DIRECT WINDOW LOCATION CHANGE FOR 100% RELIABLE DOWNLOAD WITH EXTENSION
-  window.location.href = downloadUrl;
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function fetchResultsTable() {

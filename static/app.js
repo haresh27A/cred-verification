@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Global State
   let currentSessionId = null;
+  let currentOriginalFilename = "provider_output";
   let eventSource = null;
   let processedRows = [];
   let totalRowsCount = 0;
@@ -128,6 +129,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setupSessionUI(data) {
     currentSessionId = data.session_id;
+    if (data.filename) {
+      const dotIndex = data.filename.lastIndexOf('.');
+      currentOriginalFilename = dotIndex !== -1 ? data.filename.substring(0, dotIndex) : data.filename;
+    } else {
+      currentOriginalFilename = "provider_output";
+    }
     totalRowsCount = data.row_count;
     fileNameText.textContent = data.filename;
     fileRowsText.textContent = `${data.row_count} provider rows ready`;
@@ -295,21 +302,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Helper for downloads with explicit filename and extension
+  function triggerDownload(format) {
+    if (!currentSessionId) return;
+    const safeBase = (currentOriginalFilename || "provider_output").replace(/[^a-zA-Z0-9_\-]/g, '_');
+    const filename = `${safeBase}_verified.${format}`;
+    const downloadUrl = `/api/download/${encodeURIComponent(currentSessionId)}/${encodeURIComponent(filename)}?format=${encodeURIComponent(format)}`;
+
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   // Exports
-  downloadXlsxBtn.addEventListener("click", () => {
-    if (!currentSessionId) return;
-    window.location.href = `/api/download/${currentSessionId}?format=xlsx`;
-  });
-
-  downloadCsvBtn.addEventListener("click", () => {
-    if (!currentSessionId) return;
-    window.location.href = `/api/download/${currentSessionId}?format=csv`;
-  });
-
-  downloadJsonBtn.addEventListener("click", () => {
-    if (!currentSessionId) return;
-    window.location.href = `/api/download/${currentSessionId}?format=json`;
-  });
+  if (downloadXlsxBtn) {
+    downloadXlsxBtn.addEventListener("click", () => triggerDownload("xlsx"));
+  }
+  if (downloadCsvBtn) {
+    downloadCsvBtn.addEventListener("click", () => triggerDownload("csv"));
+  }
+  if (downloadJsonBtn) {
+    downloadJsonBtn.addEventListener("click", () => triggerDownload("json"));
+  }
 
   // Single Lookup Sandbox
   singleForm.addEventListener("submit", (e) => {
