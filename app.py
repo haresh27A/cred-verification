@@ -260,9 +260,10 @@ def get_results(session_id):
 
 
 @app.route("/api/download/<session_id>", methods=["GET"])
+@app.route("/api/download/<session_id>.<ext>", methods=["GET"])
 @app.route("/api/download/<session_id>/<filename>", methods=["GET"])
-def download_file(session_id, filename=None):
-    """Download processed verification output (.xlsx, .csv, or .json) with explicit URL path extensions."""
+def download_file(session_id, ext=None, filename=None):
+    """Download processed verification output (.xlsx, .csv, or .json) with mandatory file extensions."""
     if session_id not in SESSIONS:
         return jsonify({"error": "Session not found."}), 404
 
@@ -273,7 +274,9 @@ def download_file(session_id, filename=None):
         return jsonify({"error": "No output available for download yet. Run verification first."}), 400
 
     file_format = request.args.get("format", "").lower()
-    if not file_format and filename:
+    if ext:
+        file_format = ext.lower()
+    elif filename:
         if filename.lower().endswith(".csv"):
             file_format = "csv"
         elif filename.lower().endswith(".json"):
@@ -281,15 +284,21 @@ def download_file(session_id, filename=None):
         elif filename.lower().endswith(".xlsx"):
             file_format = "xlsx"
 
-    if not file_format:
+    if not file_format or file_format not in ["xlsx", "csv", "json"]:
         file_format = "xlsx"
 
     raw_name = session_data.get("filename", "provider_output")
-    base_name = os.path.splitext(raw_name)[0] or "provider_output"
+    base_name = os.path.splitext(raw_name)[0] or session_id
     clean_base = re.sub(r'[^a-zA-Z0-9_\-]', '_', base_name)
 
+    if filename and filename.lower().endswith(f".{file_format}"):
+        download_filename = filename
+    else:
+        download_filename = f"{clean_base}_verified.{file_format}"
+
     if file_format == "csv":
-        download_filename = filename if (filename and filename.endswith(".csv")) else f"{clean_base}_verified.csv"
+        if not download_filename.endswith(".csv"):
+            download_filename += ".csv"
         csv_buffer = io.StringIO()
         df_output.to_csv(csv_buffer, index=False)
         csv_bytes = io.BytesIO(csv_buffer.getvalue().encode("utf-8"))
@@ -304,7 +313,8 @@ def download_file(session_id, filename=None):
         return response
 
     elif file_format == "json":
-        download_filename = filename if (filename and filename.endswith(".json")) else f"{clean_base}_verified.json"
+        if not download_filename.endswith(".json"):
+            download_filename += ".json"
         json_str = df_output.to_json(orient="records", indent=2)
         json_bytes = io.BytesIO(json_str.encode("utf-8"))
         response = send_file(
@@ -318,7 +328,8 @@ def download_file(session_id, filename=None):
         return response
 
     else:  # XLSX format
-        download_filename = filename if (filename and filename.endswith(".xlsx")) else f"{clean_base}_verified.xlsx"
+        if not download_filename.endswith(".xlsx"):
+            download_filename += ".xlsx"
         excel_bytes = generate_excel_bytes(
             df_output,
             invalid_npi_rows=session_data.get("invalid_npi_rows", []),
