@@ -886,32 +886,12 @@ function downloadProcessedFile(format) {
     return;
   }
 
-  const safeBase = (currentOriginalFilename || "verified_output").replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const safeBase = (currentOriginalFilename || "provider_output").replace(/[^a-zA-Z0-9_\-]/g, '_');
   const filename = safeBase + "_verified." + format;
   const downloadUrl = '/api/download/' + currentSessionId + '/' + filename + '?format=' + format;
 
-  fetch(downloadUrl)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error("Download failed (Status " + response.status + ")");
-    }
-    return response.blob();
-  })
-  .then(blob => {
-    const blobUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = filename; // FORCES EXACT FILENAME WITH .xlsx / .csv EXTENSION IN CHROME
-    document.body.appendChild(link);
-    link.click();
-    setTimeout(() => {
-      window.URL.revokeObjectURL(blobUrl);
-      document.body.removeChild(link);
-    }, 250);
-  })
-  .catch(err => {
-    alert("Download error: " + err.message);
-  });
+  // DIRECT WINDOW LOCATION CHANGE FOR 100% RELIABLE DOWNLOAD WITH EXTENSION
+  window.location.href = downloadUrl;
 }
 
 function fetchResultsTable() {
