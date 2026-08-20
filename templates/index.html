@@ -796,7 +796,6 @@ function renderPreviewTable(columns, rows, invalidRows, mismatchRows, notesMap) 
       let val = row[col];
       if (val === null || val === undefined) val = '';
       
-      // Render clean badge formatting for status / confidence columns
       if (col === 'NPI Status') {
         if (val === 'Active') td.innerHTML = `<span class="badge badge-green">Active</span>`;
         else if (val === 'Entity Type Mismatch') td.innerHTML = `<span class="badge badge-red">Entity Mismatch</span>`;
@@ -867,13 +866,15 @@ function startVerification() {
 
       const downloadXlsxBtn = document.getElementById('btnDownloadXlsx');
       const downloadCsvBtn = document.getElementById('btnDownloadCsv');
-      const baseFilename = currentOriginalFilename + '_verified';
+      const safeBase = (currentOriginalFilename || "verified_output").replace(/[^a-zA-Z0-9_\-]/g, '_');
+      const xlsxFilename = safeBase + "_verified.xlsx";
+      const csvFilename = safeBase + "_verified.csv";
 
-      downloadXlsxBtn.href = '/api/download/' + currentSessionId + '?format=xlsx';
-      downloadXlsxBtn.setAttribute('download', baseFilename + '.xlsx');
+      downloadXlsxBtn.href = '/api/download/' + currentSessionId + '/' + xlsxFilename + '?format=xlsx';
+      downloadXlsxBtn.setAttribute('download', xlsxFilename);
 
-      downloadCsvBtn.href = '/api/download/' + currentSessionId + '?format=csv';
-      downloadCsvBtn.setAttribute('download', baseFilename + '.csv');
+      downloadCsvBtn.href = '/api/download/' + currentSessionId + '/' + csvFilename + '?format=csv';
+      downloadCsvBtn.setAttribute('download', csvFilename);
 
       if (event.stats) {
         updateStats(event.stats);

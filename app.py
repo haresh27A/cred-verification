@@ -8,6 +8,7 @@ single provider lookups, and styled Excel exports with cell comments and highlig
 
 import os
 import io
+import re
 import json
 import uuid
 import time
@@ -230,7 +231,6 @@ def get_results(session_id):
 
     df_clean = df_output.fillna("")
 
-    # Reorder columns to place key results FIRST so user sees them immediately without scrolling
     all_cols = list(df_clean.columns)
     priority_order = [
         "PENDINGCPNAME", "PROVIDER_NAME", "NAME",
@@ -260,8 +260,9 @@ def get_results(session_id):
 
 
 @app.route("/api/download/<session_id>", methods=["GET"])
-def download_file(session_id):
-    """Download processed verification output (.xlsx, .csv, or .json)."""
+@app.route("/api/download/<session_id>/<filename>", methods=["GET"])
+def download_file(session_id, filename=None):
+    """Download processed verification output (.xlsx, .csv, or .json) with explicit URL path extensions."""
     if session_id not in SESSIONS:
         return jsonify({"error": "Session not found."}), 404
 
@@ -271,52 +272,66 @@ def download_file(session_id):
     if df_output is None:
         return jsonify({"error": "No output available for download yet. Run verification first."}), 400
 
-    file_format = request.args.get("format", "xlsx").lower()
+    file_format = request.args.get("format", "").lower()
+    if not file_format and filename:
+        if filename.lower().endswith(".csv"):
+            file_format = "csv"
+        elif filename.lower().endswith(".json"):
+            file_format = "json"
+        elif filename.lower().endswith(".xlsx"):
+            file_format = "xlsx"
+
+    if not file_format:
+        file_format = "xlsx"
+
     raw_name = session_data.get("filename", "provider_output")
     base_name = os.path.splitext(raw_name)[0] or "provider_output"
+    clean_base = re.sub(r'[^a-zA-Z0-9_\-]', '_', base_name)
 
     if file_format == "csv":
+        download_filename = filename if (filename and filename.endswith(".csv")) else f"{clean_base}_verified.csv"
         csv_buffer = io.StringIO()
         df_output.to_csv(csv_buffer, index=False)
         csv_bytes = io.BytesIO(csv_buffer.getvalue().encode("utf-8"))
-        download_filename = f"{base_name}_verified.csv"
         response = send_file(
             csv_bytes,
             mimetype="text/csv",
             as_attachment=True,
             download_name=download_filename
         )
-        response.headers["Content-Disposition"] = f'attachment; filename="{download_filename}"'
+        response.headers["Content-Disposition"] = f'attachment; filename="{download_filename}"; filename*=UTF-8\'\'{download_filename}'
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         return response
+
     elif file_format == "json":
+        download_filename = filename if (filename and filename.endswith(".json")) else f"{clean_base}_verified.json"
         json_str = df_output.to_json(orient="records", indent=2)
         json_bytes = io.BytesIO(json_str.encode("utf-8"))
-        download_filename = f"{base_name}_verified.json"
         response = send_file(
             json_bytes,
             mimetype="application/json",
             as_attachment=True,
             download_name=download_filename
         )
-        response.headers["Content-Disposition"] = f'attachment; filename="{download_filename}"'
+        response.headers["Content-Disposition"] = f'attachment; filename="{download_filename}"; filename*=UTF-8\'\'{download_filename}'
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         return response
-    else:  # default styled XLSX with openpyxl cell comments
+
+    else:  # XLSX format
+        download_filename = filename if (filename and filename.endswith(".xlsx")) else f"{clean_base}_verified.xlsx"
         excel_bytes = generate_excel_bytes(
             df_output,
             invalid_npi_rows=session_data.get("invalid_npi_rows", []),
             mismatch_rows=session_data.get("mismatch_rows", []),
             npi_notes_map=session_data.get("npi_notes_map", {})
         )
-        download_filename = f"{base_name}_verified.xlsx"
         response = send_file(
             io.BytesIO(excel_bytes),
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             as_attachment=True,
             download_name=download_filename
         )
-        response.headers["Content-Disposition"] = f'attachment; filename="{download_filename}"'
+        response.headers["Content-Disposition"] = f'attachment; filename="{download_filename}"; filename*=UTF-8\'\'{download_filename}'
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         return response
 
