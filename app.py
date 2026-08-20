@@ -1,7 +1,9 @@
 """
 app.py
 ------
-Flask Web Application for Provider NPI & Credential Verification Suite.
+Flask Web Server for Credential and NPI Finder.
+Supports bulk file processing (.csv, .xlsx, .xls), real-time SSE streaming,
+single provider lookups, and styled Excel exports with cell comments and highlights.
 """
 
 import os
@@ -16,7 +18,7 @@ import pandas as pd
 from utils import setup_logger
 from excel_handler import read_input_file, generate_excel_bytes
 from main import process_dataframe_stream
-from search import validate_existing_npi, verify_provider
+from search import validate_existing_npi, verify_single_provider
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
@@ -26,15 +28,16 @@ app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.url_map.strict_slashes = False
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB max upload limit
 
-logger = setup_logger("web_app", "web_app.log")
+logger = setup_logger("credential_npi_finder", "web_app.log")
 
 
 @app.route("/static/<path:filename>")
 def serve_static_assets(filename):
     return send_from_directory(STATIC_DIR, filename)
 
-# In-memory session cache for active and processed files
-# Format: session_id -> { "df_input": df, "df_output": df, "filename": str, "invalid_npi_rows": [], "mismatch_rows": [], "status": str }
+
+# In-memory session store
+# session_id -> { "df_input": df, "df_output": df, "filename": str, "invalid_npi_rows": [], "mismatch_rows": [], "npi_notes_map": {}, "stats": {}, "status": str }
 SESSIONS = {}
 
 
@@ -54,7 +57,7 @@ def page_not_found(e):
 
 @app.route("/api/upload", methods=["POST"])
 def upload_file():
-    """Handle XLSX / CSV file uploads."""
+    """Handle XLSX, XLS, and CSV file uploads."""
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
@@ -80,24 +83,32 @@ def upload_file():
             "df_output": None,
             "invalid_npi_rows": [],
             "mismatch_rows": [],
+            "npi_notes_map": {},
+            "stats": {},
             "status": "ready",
             "created_at": time.time()
         }
 
-        # First 5 preview rows
-        preview_rows = df.head(5).to_dict(orient="records")
+        # Priority preview columns
+        all_cols = list(df.columns)
+        priority_cols = ["PENDINGCPNAME", "PROVIDER_NAME", "NAME", "NPI", "FIRSTNAME", "LASTNAME", "ADDRESS", "CITY", "STATE", "PHONE"]
+        front_cols = [c for c in priority_cols if c in all_cols]
+        other_cols = [c for c in all_cols if c not in front_cols]
+        ordered_cols = front_cols + other_cols
+
+        preview_rows = df[ordered_cols].head(5).to_dict(orient="records")
 
         return jsonify({
             "success": True,
             "session_id": session_id,
             "filename": filename,
             "row_count": len(df),
-            "columns": list(df.columns),
+            "columns": ordered_cols,
             "preview": preview_rows
         })
 
     except Exception as e:
-        logger.error(f"File upload processing error: {e}")
+        logger.error(f"File upload error: {e}")
         return jsonify({"error": f"Failed to process file: {str(e)}"}), 500
 
 
@@ -131,17 +142,25 @@ def load_sample():
             "df_output": None,
             "invalid_npi_rows": [],
             "mismatch_rows": [],
+            "npi_notes_map": {},
+            "stats": {},
             "status": "ready",
             "created_at": time.time()
         }
+
+        all_cols = list(df.columns)
+        priority_cols = ["PENDINGCPNAME", "PROVIDER_NAME", "NAME", "NPI", "FIRSTNAME", "LASTNAME", "ADDRESS", "CITY", "STATE", "PHONE"]
+        front_cols = [c for c in priority_cols if c in all_cols]
+        other_cols = [c for c in all_cols if c not in front_cols]
+        ordered_cols = front_cols + other_cols
 
         return jsonify({
             "success": True,
             "session_id": session_id,
             "filename": "sample_input.csv",
             "row_count": len(df),
-            "columns": list(df.columns),
-            "preview": df.head(5).to_dict(orient="records")
+            "columns": ordered_cols,
+            "preview": df[ordered_cols].head(5).to_dict(orient="records")
         })
     except Exception as e:
         logger.error(f"Error loading sample dataset: {e}")
@@ -159,11 +178,13 @@ def process_stream(session_id):
 
     def generate_events():
         session_data["status"] = "processing"
-        yield f"data: {json.dumps({'type': 'start', 'message': 'Starting provider verification engine...'})}\n\n"
+        yield f"data: {json.dumps({'type': 'start', 'message': 'Starting Credential and NPI Verification Engine...'})}\n\n"
 
         final_df = None
         invalid_rows = []
         mismatch_rows = []
+        npi_notes_map = {}
+        final_stats = {}
 
         try:
             for event in process_dataframe_stream(df_input, logger=logger):
@@ -173,13 +194,17 @@ def process_stream(session_id):
                     final_df = event["df"]
                     invalid_rows = event["invalid_npi_rows"]
                     mismatch_rows = event["mismatch_rows"]
+                    npi_notes_map = event["npi_notes_map"]
+                    final_stats = event["stats"]
 
             session_data["df_output"] = final_df
             session_data["invalid_npi_rows"] = invalid_rows
             session_data["mismatch_rows"] = mismatch_rows
+            session_data["npi_notes_map"] = npi_notes_map
+            session_data["stats"] = final_stats
             session_data["status"] = "completed"
 
-            yield f"data: {json.dumps({'type': 'finished', 'session_id': session_id, 'invalid_count': len(invalid_rows), 'mismatch_count': len(mismatch_rows)})}\n\n"
+            yield f"data: {json.dumps({'type': 'finished', 'session_id': session_id, 'invalid_count': len(invalid_rows), 'mismatch_count': len(mismatch_rows), 'stats': final_stats})}\n\n"
 
         except Exception as e:
             import traceback
@@ -188,13 +213,12 @@ def process_stream(session_id):
             session_data["status"] = "error"
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
-
     return Response(generate_events(), mimetype="text/event-stream")
 
 
-@app.route("/api/download/<session_id>", methods=["GET"])
-def download_file(session_id):
-    """Download processed verification output (xlsx, csv, or json)."""
+@app.route("/api/results/<session_id>", methods=["GET"])
+def get_results(session_id):
+    """Return completed verification results DataFrame with key result columns placed at the front."""
     if session_id not in SESSIONS:
         return jsonify({"error": "Session not found."}), 404
 
@@ -202,88 +226,121 @@ def download_file(session_id):
     df_output = session_data.get("df_output")
 
     if df_output is None:
-        return jsonify({"error": "No output available for download yet. Run processing first."}), 400
+        return jsonify({"error": "No output processed yet."}), 400
+
+    df_clean = df_output.fillna("")
+
+    # Reorder columns to place key results FIRST so user sees them immediately without scrolling
+    all_cols = list(df_clean.columns)
+    priority_order = [
+        "PENDINGCPNAME", "PROVIDER_NAME", "NAME",
+        "NPI 1", "NPI1",
+        "Credential", "Credental",
+        "NPI Status", "Match Confidence", "Validation Notes",
+        "NPI Entity Type", "NPI Validation", "NPI",
+        "Url", "NPI 1 Url", "NPI1 Url"
+    ]
+
+    front_cols = [c for c in priority_order if c in all_cols]
+    other_cols = [c for c in all_cols if c not in front_cols]
+    ordered_cols = front_cols + other_cols
+
+    df_reordered = df_clean[ordered_cols]
+
+    return jsonify({
+        "success": True,
+        "filename": session_data.get("filename", "output"),
+        "columns": ordered_cols,
+        "rows": df_reordered.to_dict(orient="records"),
+        "invalid_npi_rows": session_data.get("invalid_npi_rows", []),
+        "mismatch_rows": session_data.get("mismatch_rows", []),
+        "npi_notes_map": session_data.get("npi_notes_map", {}),
+        "stats": session_data.get("stats", {})
+    })
+
+
+@app.route("/api/download/<session_id>", methods=["GET"])
+def download_file(session_id):
+    """Download processed verification output (.xlsx, .csv, or .json)."""
+    if session_id not in SESSIONS:
+        return jsonify({"error": "Session not found."}), 404
+
+    session_data = SESSIONS[session_id]
+    df_output = session_data.get("df_output")
+
+    if df_output is None:
+        return jsonify({"error": "No output available for download yet. Run verification first."}), 400
 
     file_format = request.args.get("format", "xlsx").lower()
-    base_name = os.path.splitext(session_data["filename"])[0]
+    raw_name = session_data.get("filename", "provider_output")
+    base_name = os.path.splitext(raw_name)[0] or "provider_output"
 
     if file_format == "csv":
         csv_buffer = io.StringIO()
         df_output.to_csv(csv_buffer, index=False)
         csv_bytes = io.BytesIO(csv_buffer.getvalue().encode("utf-8"))
-        return send_file(
+        download_filename = f"{base_name}_verified.csv"
+        response = send_file(
             csv_bytes,
             mimetype="text/csv",
             as_attachment=True,
-            download_name=f"{base_name}_verified.csv"
+            download_name=download_filename
         )
+        response.headers["Content-Disposition"] = f'attachment; filename="{download_filename}"'
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
     elif file_format == "json":
         json_str = df_output.to_json(orient="records", indent=2)
         json_bytes = io.BytesIO(json_str.encode("utf-8"))
-        return send_file(
+        download_filename = f"{base_name}_verified.json"
+        response = send_file(
             json_bytes,
             mimetype="application/json",
             as_attachment=True,
-            download_name=f"{base_name}_verified.json"
+            download_name=download_filename
         )
-    else:  # default XLSX
+        response.headers["Content-Disposition"] = f'attachment; filename="{download_filename}"'
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
+    else:  # default styled XLSX with openpyxl cell comments
         excel_bytes = generate_excel_bytes(
             df_output,
             invalid_npi_rows=session_data.get("invalid_npi_rows", []),
-            mismatch_rows=session_data.get("mismatch_rows", [])
+            mismatch_rows=session_data.get("mismatch_rows", []),
+            npi_notes_map=session_data.get("npi_notes_map", {})
         )
-        return send_file(
+        download_filename = f"{base_name}_verified.xlsx"
+        response = send_file(
             io.BytesIO(excel_bytes),
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             as_attachment=True,
-            download_name=f"{base_name}_verified.xlsx"
+            download_name=download_filename
         )
+        response.headers["Content-Disposition"] = f'attachment; filename="{download_filename}"'
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
 
 
 @app.route("/api/verify_single", methods=["POST"])
 def verify_single():
-    """Interactive single-provider lookup endpoint."""
+    """Endpoint for Single Provider search queries."""
     data = request.json or {}
 
-    provider_name = data.get("provider_name", "").strip()
-    firstname = data.get("firstname", "").strip()
-    lastname = data.get("lastname", "").strip()
-    organization = data.get("organization", "").strip()
-    address = data.get("address", "").strip()
-    city = data.get("city", "").strip()
-    state = data.get("state", "").strip()
-    zip_code = data.get("zip_code", "").strip()
-    phone = data.get("phone", "").strip()
-    existing_npi = data.get("existing_npi", "").strip()
-
-    npi_validation = None
-    if existing_npi:
-        npi_validation = validate_existing_npi(existing_npi, is_provider_row=True)
-
-    verification_res = verify_provider(
-        provider_name=provider_name,
-        organization=organization,
-        address=address,
-        city=city,
-        state=state,
-        zip_code=zip_code,
-        phone=phone,
-        firstname=firstname,
-        lastname=lastname
-    )
-
-    return jsonify({
-        "success": True,
-        "input": data,
-        "npi_validation": npi_validation,
-        "verification": verification_res
-    })
+    try:
+        result = verify_single_provider(data)
+        return jsonify({
+            "success": True,
+            "input": data,
+            "result": result
+        })
+    except Exception as e:
+        logger.error(f"Single provider verification error: {e}")
+        return jsonify({"error": f"Failed to perform search: {str(e)}"}), 500
 
 
 if __name__ == "__main__":
     print("\n" + "=" * 65)
-    print("  Provider NPI & Credential Verification Suite - Web Server  ")
+    print("  Credential and NPI Finder - Web Server                  ")
     print("  Running on: http://127.0.0.1:5000                          ")
     print("=" * 65 + "\n")
     app.run(host="127.0.0.1", port=5000, debug=False, use_reloader=False)
-

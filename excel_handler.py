@@ -1,7 +1,9 @@
 """
 excel_handler.py
 ----------------
-Read input Excel/CSV and save/export final formatted Excel output with professional styling.
+Read input Excel/CSV files (.csv, .xlsx, .xls) and save/export styled Excel output.
+Preserves original columns and data while adding highlights, cell comments, and notes.
+Credential and NPI Finder
 """
 
 import os
@@ -9,6 +11,7 @@ import io
 import pandas as pd
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+from openpyxl.comments import Comment
 from openpyxl.utils import get_column_letter
 
 from utils import ensure_dir
@@ -16,7 +19,8 @@ from utils import ensure_dir
 
 def read_input_file(file_source, filename=None):
     """
-    Read CSV or Excel file (from file path or file-like bytes object) into pandas DataFrame.
+    Read CSV or Excel (.xlsx, .xls) file from file path or file-like bytes stream.
+    Supports delimiter auto-detection and preserves all original data rows/columns.
     """
     try:
         if not isinstance(file_source, (str, io.StringIO, io.BytesIO)):
@@ -28,60 +32,70 @@ def read_input_file(file_source, filename=None):
 
         name = (filename or (file_source if isinstance(file_source, str) else "")).lower()
 
-        if name.endswith(".csv") or isinstance(file_source, (io.StringIO, io.BytesIO)) or (isinstance(file_source, str) and file_source.endswith(".csv")):
+        if name.endswith((".xlsx", ".xls")):
             try:
+                df = pd.read_excel(file_source, dtype=str).fillna("")
+            except Exception:
+                if hasattr(file_source, "seek"):
+                    file_source.seek(0)
+                df = pd.read_excel(file_source, engine="openpyxl", dtype=str).fillna("")
+        else:  # Default CSV / TSV text format
+            try:
+                df = pd.read_csv(file_source, sep=None, engine="python", dtype=str, keep_default_na=False)
+            except Exception:
+                if hasattr(file_source, "seek"):
+                    file_source.seek(0)
                 df = pd.read_csv(file_source, sep="\t", dtype=str, keep_default_na=False)
                 if len(df.columns) <= 1:
                     if hasattr(file_source, "seek"):
                         file_source.seek(0)
                     df = pd.read_csv(file_source, sep=",", dtype=str, keep_default_na=False)
-            except Exception:
-                if hasattr(file_source, "seek"):
-                    file_source.seek(0)
-                df = pd.read_csv(file_source, sep=None, engine="python", dtype=str, keep_default_na=False)
-        elif name.endswith((".xlsx", ".xls")):
-            df = pd.read_excel(file_source, dtype=str).fillna("")
-        else:
-            try:
-                df = pd.read_csv(file_source, dtype=str, keep_default_na=False)
-            except Exception:
-                if hasattr(file_source, "seek"):
-                    file_source.seek(0)
-                df = pd.read_excel(file_source, dtype=str).fillna("")
 
+        # Standardize column headers without destroying original names
         df.columns = [str(column).strip() for column in df.columns]
         return df
+
     except Exception as e:
-        raise Exception(f"Unable to read input file: {e}")
+        raise Exception(f"Unable to read uploaded file: {e}")
 
 
 def prepare_output_dataframe(df):
     """
-    Ensure target columns exist without overwriting existing data.
+    Ensure standard result columns exist without overwriting existing input data.
     """
-    required_columns = [
-        "Credental",
-        "Url",
+    target_columns = [
+        "NPI 1",
         "NPI1",
-        "NPI 1 Url"
+        "Credential",
+        "Credental",
+        "NPI Status",
+        "NPI Entity Type",
+        "NPI Validation",
+        "Match Confidence",
+        "Validation Notes",
+        "Url",
+        "NPI 1 Url",
+        "NPI1 Url"
     ]
-    for column in required_columns:
+    for column in target_columns:
         if column not in df.columns:
             df[column] = ""
+
     return df
 
 
-def apply_professional_excel_styling(workbook, invalid_npi_rows=None, mismatch_rows=None):
+def apply_professional_excel_styling(workbook, invalid_npi_rows=None, mismatch_rows=None, npi_notes_map=None):
     """
-    Apply professional openpyxl styling:
+    Apply openpyxl styling:
     - Dark Navy Header fill (#1E293B) with white bold text.
-    - Zebra striping / gridlines.
-    - Soft red fill (#FCE8E6) with dark red text (#991B1B) for invalid/mismatched NPIs.
+    - Light-red fill (#FCE8E6) with dark red bold text (#991B1B) for invalid/mismatched NPI cells.
+    - Add openpyxl Cell Comments on invalid/mismatched NPI cells explaining the problem.
     - Clickable hyperlinks for Url and NPI 1 Url columns.
-    - Column auto-fit.
+    - Gridlines enabled and dynamic column widths.
     """
     invalid_npi_rows = invalid_npi_rows or []
     mismatch_rows = mismatch_rows or []
+    npi_notes_map = npi_notes_map or {}
     all_highlight_rows = list(set(invalid_npi_rows + mismatch_rows))
 
     worksheet = workbook.active
@@ -116,7 +130,7 @@ def apply_professional_excel_styling(workbook, invalid_npi_rows=None, mismatch_r
     red_fill = PatternFill(fill_type="solid", fgColor="FCE8E6")
     red_font = Font(name="Calibri", size=10, color="991B1B", bold=True)
 
-    # Standard cell font
+    # Standard cell fonts
     cell_font = Font(name="Calibri", size=10)
     link_font = Font(name="Calibri", size=10, color="1D4ED8", underline="single")
 
@@ -128,18 +142,22 @@ def apply_professional_excel_styling(workbook, invalid_npi_rows=None, mismatch_r
             cell.font = cell_font
             cell.border = thin_border
 
-    # Highlight invalid or mismatched NPI cells
+    # Highlight invalid or mismatched NPI cells & attach Cell Comments
     if "NPI" in column_map:
         npi_col = column_map["NPI"]
         for row_idx in all_highlight_rows:
-            excel_row = row_idx + 2  # openpyxl 1-indexed header is row 1
+            excel_row = row_idx + 2  # 1-indexed openpyxl header is row 1
             if excel_row <= worksheet.max_row:
                 cell = worksheet.cell(row=excel_row, column=npi_col)
                 cell.fill = red_fill
                 cell.font = red_font
 
+                # Attach cell comment note if available
+                note_text = npi_notes_map.get(row_idx, "Invalid NPI or Entity Type Mismatch")
+                cell.comment = Comment(text=note_text, author="Credential and NPI Finder")
+
     # Add hyperlinks for URL columns
-    for col_name in ["Url", "NPI 1 Url", "Pending CPID URL", "Suggested Admin URL"]:
+    for col_name in ["Url", "NPI 1 Url", "NPI1 Url", "Pending CPID URL", "Suggested Admin URL"]:
         if col_name in column_map:
             col_num = column_map[col_name]
             for row_idx in range(2, worksheet.max_row + 1):
@@ -165,10 +183,11 @@ def save_output_file(
     df,
     output_path,
     invalid_npi_rows=None,
-    mismatch_rows=None
+    mismatch_rows=None,
+    npi_notes_map=None
 ):
     """
-    Save final DataFrame to Excel file on disk with professional styling.
+    Save DataFrame to Excel file on disk with openpyxl styling and cell comments.
     """
     output_folder = os.path.dirname(output_path)
     if output_folder:
@@ -177,16 +196,25 @@ def save_output_file(
     try:
         df.to_excel(output_path, index=False)
         workbook = load_workbook(output_path)
-        workbook = apply_professional_excel_styling(workbook, invalid_npi_rows, mismatch_rows)
+        workbook = apply_professional_excel_styling(
+            workbook,
+            invalid_npi_rows=invalid_npi_rows,
+            mismatch_rows=mismatch_rows,
+            npi_notes_map=npi_notes_map
+        )
         workbook.save(output_path)
-        print(f"\nOutput Excel saved successfully to: {output_path}")
     except Exception as e:
         raise Exception(f"Unable to save output file: {e}")
 
 
-def generate_excel_bytes(df, invalid_npi_rows=None, mismatch_rows=None):
+def generate_excel_bytes(
+    df,
+    invalid_npi_rows=None,
+    mismatch_rows=None,
+    npi_notes_map=None
+):
     """
-    Generate styled Excel binary buffer in memory.
+    Generate styled Excel binary buffer in memory for web file downloads.
     """
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
@@ -194,7 +222,12 @@ def generate_excel_bytes(df, invalid_npi_rows=None, mismatch_rows=None):
 
     buffer.seek(0)
     workbook = load_workbook(buffer)
-    workbook = apply_professional_excel_styling(workbook, invalid_npi_rows, mismatch_rows)
+    workbook = apply_professional_excel_styling(
+        workbook,
+        invalid_npi_rows=invalid_npi_rows,
+        mismatch_rows=mismatch_rows,
+        npi_notes_map=npi_notes_map
+    )
 
     out_buffer = io.BytesIO()
     workbook.save(out_buffer)

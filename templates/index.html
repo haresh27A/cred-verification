@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Provider NPI & Credential Verification Suite</title>
+  <title>Credential and NPI Finder</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
 /*
-  Provider NPI & Credential Verification Suite Design System
+  Credential and NPI Finder Design System
   Theme: Dark Glassmorphic Healthcare Tech
 */
 
@@ -52,8 +52,8 @@
 body {
   background-color: var(--bg-dark);
   background-image: 
-    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
   background-attachment: fixed;
   color: var(--text-main);
   font-family: var(--font-sans);
@@ -116,260 +116,133 @@ body {
   color: var(--text-muted);
 }
 
-.system-status {
-  display: flex;
-  gap: 12px;
-}
-
-.status-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-color);
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
-}
-
-.pulse-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--accent-cyan);
-  box-shadow: 0 0 8px var(--accent-cyan);
-  animation: pulse 2s infinite;
-}
-
-.pulse-dot.green {
-  background-color: var(--accent-emerald);
-  box-shadow: 0 0 8px var(--accent-emerald);
-}
-
-@keyframes pulse {
-  0% { opacity: 0.6; transform: scale(0.95); }
-  50% { opacity: 1; transform: scale(1.15); }
-  100% { opacity: 0.6; transform: scale(0.95); }
-}
-
-/* --------------------------------------------------------
-   Navigation Tabs
--------------------------------------------------------- */
 .nav-tabs {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.tab-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
-  padding: 12px 22px;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 4px;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  border: 1px solid var(--border-color);
+}
+
+.nav-tab-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
   font-weight: 600;
+  font-size: 0.88rem;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
 
-.tab-btn:hover {
-  background: var(--bg-card-hover);
+.nav-tab-btn:hover {
   color: var(--text-main);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.tab-btn.active {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.15));
-  border-color: var(--accent-cyan);
+.nav-tab-btn.active {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
   color: #ffffff;
-  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.15);
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
 }
 
 /* --------------------------------------------------------
-   Cards & Layout
+   Main Card Wrappers
 -------------------------------------------------------- */
-.tab-content {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.tab-content.hidden {
-  display: none !important;
-}
-
-.card {
+.glass-card {
   background: var(--bg-card);
   backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 28px;
   box-shadow: var(--shadow-card);
+  margin-bottom: 24px;
+  transition: border-color 0.3s ease;
 }
 
-.card-header {
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
   margin-bottom: 20px;
 }
 
-.card-header h2 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.subtitle {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-
 /* --------------------------------------------------------
-   Drop Zone & File Selection
+   Upload Zone
 -------------------------------------------------------- */
-.drop-zone {
-  border: 2px dashed rgba(56, 189, 248, 0.3);
-  background: rgba(30, 41, 59, 0.4);
+.upload-dropzone {
+  border: 2px dashed rgba(56, 189, 248, 0.35);
   border-radius: var(--radius-md);
-  padding: 44px 20px;
+  padding: 40px 20px;
   text-align: center;
+  background: rgba(30, 41, 59, 0.3);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s ease;
   position: relative;
 }
 
-.drop-zone:hover, .drop-zone.drag-over {
+.upload-dropzone:hover, .upload-dropzone.dragover {
   border-color: var(--accent-cyan);
   background: rgba(56, 189, 248, 0.08);
   box-shadow: var(--shadow-glow);
-  transform: translateY(-2px);
-}
-
-.file-input-hidden {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
 }
 
 .upload-icon {
-  width: 68px;
-  height: 68px;
-  margin: 0 auto 16px auto;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   background: rgba(56, 189, 248, 0.12);
   color: var(--accent-cyan);
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0 auto 16px;
 }
 
-.drop-title {
-  font-size: 1rem;
-  color: var(--text-main);
-  margin-bottom: 6px;
-}
-
-.drop-subtitle {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-bottom: 16px;
-}
-
-.browse-link {
-  color: var(--accent-cyan);
-  text-decoration: underline;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.supported-tags {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
-.tag {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-color);
-  font-size: 0.72rem;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  color: var(--text-muted);
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
-}
-
-/* File Summary Bar */
-.file-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid var(--border-accent);
-  padding: 16px 20px;
-  border-radius: var(--radius-md);
-  margin-top: 20px;
-}
-
-.file-summary.hidden {
-  display: none;
-}
-
-.file-info-badge {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: var(--accent-cyan);
-}
-
-.file-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.file-name {
+.upload-title {
   font-weight: 700;
-  font-size: 0.95rem;
-  color: #ffffff;
+  font-size: 1.05rem;
+  margin-bottom: 4px;
 }
 
-.file-meta {
-  font-size: 0.8rem;
+.upload-hint {
+  font-size: 0.82rem;
   color: var(--text-muted);
 }
 
-/* --------------------------------------------------------
-   Buttons
--------------------------------------------------------- */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 10px 22px;
   border-radius: var(--radius-md);
-  font-size: 0.88rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
+  font-size: 0.88rem;
   border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
   color: #ffffff;
-  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.3);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
 }
 
 .btn-primary:hover {
@@ -377,10 +250,20 @@ body {
   box-shadow: 0 6px 20px rgba(56, 189, 248, 0.45);
 }
 
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .btn-emerald {
   background: linear-gradient(135deg, #10b981, #059669);
   color: #ffffff;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
 }
 
 .btn-emerald:hover {
@@ -388,280 +271,88 @@ body {
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
 }
 
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.btn-outline {
-  background: transparent;
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
-  padding: 8px 16px;
-  font-size: 0.82rem;
-}
-
-.btn-outline:hover {
-  border-color: var(--accent-cyan);
-  color: var(--accent-cyan);
-}
-
 /* --------------------------------------------------------
-   Progress & Stats
+   Summary Metrics Dashboard Grid
 -------------------------------------------------------- */
-.progress-bar-container {
-  margin-bottom: 24px;
-}
-
-.progress-bar-track {
-  height: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-emerald));
-  border-radius: var(--radius-full);
-  transition: width 0.3s ease;
-}
-
-.progress-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.stats-grid {
+.metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.stat-card {
+.metric-card {
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   padding: 16px 20px;
-  border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
-}
-
-.stat-title {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 4px;
-}
-
-.stat-value {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #ffffff;
-}
-
-.stat-card.success .stat-value { color: var(--accent-emerald); }
-.stat-card.warning .stat-value { color: var(--accent-amber); }
-.stat-card.danger .stat-value { color: var(--accent-rose); }
-
-/* Log Console */
-.log-container {
-  background: #060a12;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.log-header {
-  background: rgba(255, 255, 255, 0.04);
-  padding: 10px 16px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.log-console {
-  padding: 14px 16px;
-  height: 140px;
-  overflow-y: auto;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.log-line {
-  color: var(--text-muted);
-}
-
-.log-line.info { color: var(--accent-cyan); }
-.log-line.success { color: var(--accent-emerald); }
-.log-line.warn { color: var(--accent-amber); }
-.log-line.error { color: var(--accent-rose); }
-
-/* --------------------------------------------------------
-   Data Table
--------------------------------------------------------- */
-.export-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.table-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  gap: 16px;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
-  width: 320px;
-  color: var(--text-muted);
-}
-
-.search-box input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text-main);
-  font-size: 0.85rem;
-  width: 100%;
-}
-
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.form-select, .form-input {
-  background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
-  outline: none;
-  font-size: 0.85rem;
-  font-family: var(--font-sans);
-}
-
-.form-select:focus, .form-input:focus {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
-}
-
-.table-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.84rem;
-  text-align: left;
-}
-
-.data-table th {
-  background: #1e293b;
-  color: #ffffff;
-  font-weight: 700;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border-color);
-  white-space: nowrap;
-}
-
-.data-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-main);
-  vertical-align: middle;
-}
-
-.data-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.data-table tbody tr.row-invalid {
-  background: rgba(244, 63, 94, 0.12) !important;
-}
-
-.data-table tbody tr.row-invalid td:nth-child(3) {
-  color: #fca5a5;
-  font-weight: 700;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.badge-success { background: rgba(16, 185, 129, 0.18); color: #34d399; }
-.badge-warning { background: rgba(245, 158, 11, 0.18); color: #fbbf24; }
-.badge-danger { background: rgba(244, 63, 94, 0.18); color: #f87171; }
-.badge-processing { background: rgba(56, 189, 248, 0.18); color: #38bdf8; }
-
-.link-badge {
-  color: var(--accent-cyan);
-  text-decoration: none;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
   gap: 4px;
 }
 
-.link-badge:hover {
-  text-decoration: underline;
+.metric-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.metric-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--text-main);
+}
+
+.metric-card.cyan .metric-value { color: var(--accent-cyan); }
+.metric-card.emerald .metric-value { color: var(--accent-emerald); }
+.metric-card.rose .metric-value { color: var(--accent-rose); }
+.metric-card.amber .metric-value { color: var(--accent-amber); }
+.metric-card.indigo .metric-value { color: var(--accent-indigo); }
+
+/* --------------------------------------------------------
+   Progress Bar
+-------------------------------------------------------- */
+.progress-section {
+  margin-bottom: 24px;
+  display: none;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-input);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-indigo));
+  border-radius: var(--radius-full);
+  transition: width 0.2s ease;
 }
 
 /* --------------------------------------------------------
-   Single Lookup Form & Guide
+   Form Controls (Single Provider Tab)
 -------------------------------------------------------- */
-.single-form {
-  margin-top: 16px;
-}
-
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
-
-.span-2 { grid-column: span 2; }
-.req { color: var(--accent-rose); }
 
 .form-group {
   display: flex;
@@ -675,845 +366,644 @@ body {
   color: var(--text-muted);
 }
 
-.sp-result-container {
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-color);
+.form-control {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
 }
 
-.sp-result-container h3 {
-  font-size: 1rem;
-  color: #ffffff;
+.form-control:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+/* --------------------------------------------------------
+   Tables & Data Grid
+-------------------------------------------------------- */
+.table-container {
+  max-height: 540px;
+  overflow: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  background: #1e293b;
+  color: var(--accent-cyan);
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--border-accent);
+  white-space: nowrap;
+  z-index: 10;
+  letter-spacing: 0.02em;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+td.cell-highlight-red {
+  background-color: rgba(244, 63, 94, 0.22) !important;
+  color: #fca5a5 !important;
+  font-weight: 700;
+}
+
+/* Status Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-red { background: rgba(244, 63, 94, 0.15); color: #f87171; border: 1px solid rgba(244, 63, 94, 0.3); }
+.badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-cyan { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.3); }
+
+/* Single Search Result Card */
+.result-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-top: 20px;
+  display: none;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.sp-result-grid {
+.result-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.result-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
 }
 
-.res-box {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid var(--border-color);
-  padding: 16px;
-  border-radius: var(--radius-md);
+.result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.res-label {
-  font-size: 0.78rem;
-  color: var(--text-muted);
+.result-item-label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
   font-weight: 600;
 }
 
-.res-val {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-top: 4px;
-}
-
-/* User Guide */
-.guide-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.guide-box {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid var(--border-color);
-  padding: 24px;
-  border-radius: var(--radius-md);
-}
-
-.guide-num {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent-cyan);
-  color: #000;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-.guide-box h3 {
-  font-size: 1rem;
-  color: #ffffff;
-  margin-bottom: 10px;
-}
-
-.guide-box p, .guide-box ul {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.guide-box ul {
-  padding-left: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-code {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
+.result-item-val {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
 }
   </style>
 </head>
 <body>
-  <div class="app-layout">
-    <!-- Top Header -->
-    <header class="top-header">
-      <div class="brand">
-        <div class="brand-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="m9 12 2 2 4-4"/>
-          </svg>
-        </div>
-        <div class="brand-text">
-          <h1>NPI & Credential Verification Suite</h1>
-          <span class="subtext">Healthcare Provider Data Intelligence Engine</span>
-        </div>
-      </div>
 
-      <div class="system-status">
-        <div class="status-badge active">
-          <span class="pulse-dot"></span>
-          NPPES API Online
-        </div>
-        <div class="status-badge active">
-          <span class="pulse-dot green"></span>
-          Web Scraper Active
-        </div>
+<div class="app-layout">
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="m9 14 2 2 4-4"></path></svg>
       </div>
-    </header>
-
-    <!-- Main Navigation Tabs -->
+      <div class="brand-text">
+        <h1>Credential and NPI Finder</h1>
+        <span class="subtext">Official CMS NPPES Registry & Credential Verification Engine</span>
+      </div>
+    </div>
+    
     <nav class="nav-tabs">
-      <button class="tab-btn active" data-tab="batch-tab">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <path d="M8 13h8"/>
-          <path d="M8 17h8"/>
-          <path d="M10 9h4"/>
-        </svg>
-        Batch XLSX Verification
-      </button>
-
-      <button class="tab-btn" data-tab="single-tab">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        Single Provider Sandbox
-      </button>
-
-      <button class="tab-btn" data-tab="guide-tab">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="16" x2="12" y2="12"/>
-          <line x1="12" y1="8" x2="12.01" y2="8"/>
-        </svg>
-        User Guide & Rules
-      </button>
+      <button class="nav-tab-btn active" id="tabBtnBulk" onclick="switchTab('bulk')">Bulk Verification</button>
+      <button class="nav-tab-btn" id="tabBtnSingle" onclick="switchTab('single')">Single Provider Search</button>
     </nav>
+  </header>
 
-    <!-- Main Content Container -->
-    <main class="main-container">
-      <!-- TAB 1: BATCH VERIFICATION -->
-      <section id="batch-tab" class="tab-content active">
-        <!-- File Upload Section -->
-        <div class="card upload-card">
-          <div class="card-header">
-            <h2>Input File Selection</h2>
-            <button id="load-sample-btn" class="btn btn-secondary">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Load Sample Dataset (CSV/XLSX)
-            </button>
+  <!-- TAB 1: BULK VERIFICATION -->
+  <main id="tabBulkView">
+    <section class="glass-card">
+      <h2 class="card-title">Bulk Provider Upload & Verification</h2>
+      <p class="card-subtitle">Upload CSV or Excel (.xlsx, .xls) files. Automatically validates NPI status, detects entity type mismatches, searches Type 1 provider NPIs, and confirms credentials.</p>
+      
+      <div class="upload-dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".csv, .xlsx, .xls" style="display: none;" onchange="handleFileSelect(event)">
+        <div class="upload-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        </div>
+        <div class="upload-title" id="dropzoneTitle">Drop CSV or Excel (.xlsx, .xls) file here</div>
+        <div class="upload-hint" id="dropzoneHint">Supports files up to 50MB with automatic worksheet parsing</div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end;">
+        <button class="btn btn-secondary" onclick="loadSampleData()">Load Sample Dataset</button>
+        <button class="btn btn-primary" id="btnStartProcess" style="display: none;" onclick="startVerification()">Start Verification</button>
+      </div>
+    </section>
+
+    <!-- Metrics Summary Cards -->
+    <section id="summaryDashboard" style="display: none;" class="glass-card">
+      <h3 class="card-title">Verification Summary & Metrics</h3>
+      <div class="metrics-grid">
+        <div class="metric-card cyan">
+          <span class="metric-label">Total Records</span>
+          <span class="metric-value" id="statTotal">0</span>
+        </div>
+        <div class="metric-card emerald">
+          <span class="metric-label">Valid Active NPIs</span>
+          <span class="metric-value" id="statValid">0</span>
+        </div>
+        <div class="metric-card rose">
+          <span class="metric-label">Invalid Format</span>
+          <span class="metric-value" id="statInvalid">0</span>
+        </div>
+        <div class="metric-card amber">
+          <span class="metric-label">Not Found</span>
+          <span class="metric-value" id="statNotFound">0</span>
+        </div>
+        <div class="metric-card rose">
+          <span class="metric-label">Entity Mismatches</span>
+          <span class="metric-value" id="statMismatch">0</span>
+        </div>
+        <div class="metric-card cyan">
+          <span class="metric-label">Discovered NPI 1</span>
+          <span class="metric-value" id="statFoundNpi">0</span>
+        </div>
+        <div class="metric-card emerald">
+          <span class="metric-label">Credentials Confirmed</span>
+          <span class="metric-value" id="statCredConfirmed">0</span>
+        </div>
+        <div class="metric-card amber">
+          <span class="metric-label">Manual Review</span>
+          <span class="metric-value" id="statManualReview">0</span>
+        </div>
+      </div>
+      <div id="processingTimeNotice" style="font-size: 0.82rem; color: var(--text-muted); text-align: right;"></div>
+    </section>
+
+    <!-- Real-time Progress Bar -->
+    <section class="progress-section" id="progressContainer">
+      <div class="progress-header">
+        <span id="progressStatusText">Processing verification queue...</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </section>
+
+    <!-- Download Bar & Table Preview -->
+    <section class="glass-card" id="resultsCard" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 class="card-title" id="tableTitleText">Processed Verification Results</h3>
+        <div style="display: flex; gap: 10px;">
+          <a class="btn btn-emerald" id="btnDownloadXlsx" href="#" download="verified_results.xlsx">Download Excel (.xlsx)</a>
+          <a class="btn btn-secondary" id="btnDownloadCsv" href="#" download="verified_results.csv">Download CSV</a>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table id="resultsTable">
+          <thead>
+            <tr id="tableHeaderRow"></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- TAB 2: SINGLE PROVIDER SEARCH -->
+  <main id="tabSingleView" style="display: none;">
+    <section class="glass-card">
+      <h2 class="card-title">Single Provider Lookup</h2>
+      <p class="card-subtitle">Search the official CMS NPPES NPI Registry for an individual provider or organization using any available fields.</p>
+      
+      <form id="singleSearchForm" onsubmit="handleSingleSearch(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="sProviderName">Provider Name (First / Last)</label>
+            <input type="text" id="sProviderName" class="form-control" placeholder="e.g. KRISTY GOODNOUGH">
           </div>
-
-          <div class="drop-zone" id="drop-zone">
-            <input type="file" id="file-input" accept=".xlsx,.xls,.csv" class="file-input-hidden">
-            <div class="drop-zone-content">
-              <div class="upload-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
-                  <path d="M12 12v9"/>
-                  <path d="m16 16-4-4-4 4"/>
-                </svg>
-              </div>
-              <p class="drop-title">Drag and drop your provider <strong>.xlsx</strong> or <strong>.csv</strong> file here</p>
-              <p class="drop-subtitle">or <span class="browse-link">click to browse files</span> from your computer</p>
-              <div class="supported-tags">
-                <span class="tag">.XLSX</span>
-                <span class="tag">.XLS</span>
-                <span class="tag">.CSV</span>
-              </div>
-            </div>
+          <div class="form-group">
+            <label for="sOrgName">Organization Name</label>
+            <input type="text" id="sOrgName" class="form-control" placeholder="e.g. PRIVIA HEALTHCARE">
           </div>
-
-          <!-- Uploaded File Summary Bar -->
-          <div id="file-summary" class="file-summary hidden">
-            <div class="file-info-badge">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-              <div class="file-details">
-                <span id="file-name-text" class="file-name">filename.xlsx</span>
-                <span id="file-rows-text" class="file-meta">0 rows detected</span>
-              </div>
-            </div>
-
-            <div class="action-buttons">
-              <button id="start-verify-btn" class="btn btn-primary">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
-                </svg>
-                Start Verification Pipeline
-              </button>
-            </div>
+          <div class="form-group">
+            <label for="sNpi">Existing NPI</label>
+            <input type="text" id="sNpi" class="form-control" placeholder="10-digit NPI">
+          </div>
+          <div class="form-group">
+            <label for="sPhone">Phone Number</label>
+            <input type="text" id="sPhone" class="form-control" placeholder="(301) 774-0500">
+          </div>
+          <div class="form-group">
+            <label for="sAddress">Street Address</label>
+            <input type="text" id="sAddress" class="form-control" placeholder="3414 OLANDWOOD COURT">
+          </div>
+          <div class="form-group">
+            <label for="sCity">City</label>
+            <input type="text" id="sCity" class="form-control" placeholder="OLNEY">
+          </div>
+          <div class="form-group">
+            <label for="sState">State (2-Letter)</label>
+            <input type="text" id="sState" class="form-control" placeholder="MD" maxlength="2">
           </div>
         </div>
 
-        <!-- Verification Progress Card (Hidden until started) -->
-        <div id="progress-card" class="card progress-card hidden">
-          <div class="card-header">
-            <h2>Verification Engine Progress</h2>
-            <span id="progress-status-badge" class="badge badge-processing">Processing Batch...</span>
-          </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button type="button" class="btn btn-secondary" onclick="clearSingleForm()">Clear</button>
+          <button type="submit" class="btn btn-primary" id="btnSingleSearch">Search NPPES Registry</button>
+        </div>
+      </form>
 
-          <div class="progress-bar-container">
-            <div class="progress-bar-track">
-              <div id="progress-fill" class="progress-bar-fill" style="width: 0%;"></div>
-            </div>
-            <div class="progress-meta">
-              <span id="progress-percentage">0%</span>
-              <span id="progress-counts">0 / 0 Providers Processed</span>
-            </div>
+      <!-- Single Search Result Container -->
+      <div class="result-card" id="singleResultCard">
+        <div class="result-header">
+          <div>
+            <div class="result-name" id="resName">Provider Name</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);" id="resOrg">Organization</div>
           </div>
-
-          <!-- Stats Grid -->
-          <div class="stats-grid">
-            <div class="stat-card">
-              <span class="stat-title">Total Records</span>
-              <span id="stat-total" class="stat-value">0</span>
-            </div>
-            <div class="stat-card success">
-              <span class="stat-title">Verified</span>
-              <span id="stat-verified" class="stat-value">0</span>
-            </div>
-            <div class="stat-card warning">
-              <span class="stat-title">Credentials Found</span>
-              <span id="stat-cred-found" class="stat-value">0</span>
-            </div>
-            <div class="stat-card danger">
-              <span class="stat-title">Invalid/Mismatch NPIs</span>
-              <span id="stat-invalid-npi" class="stat-value">0</span>
-            </div>
-          </div>
-
-          <!-- Live Activity Log -->
-          <div class="log-container">
-            <div class="log-header">Live Engine Activity Log</div>
-            <div id="log-console" class="log-console">
-              <div class="log-line info">[System] Initializing verification pipeline...</div>
-            </div>
-          </div>
+          <div style="display: flex; gap: 8px;" id="resBadges"></div>
         </div>
 
-        <!-- Output & Results Table Card -->
-        <div id="results-card" class="card results-card hidden">
-          <div class="card-header">
-            <div>
-              <h2>Verification Results & Export</h2>
-              <p class="subtitle">Review verified NPI-1 identifiers, profile URLs, and extracted credentials.</p>
-            </div>
-
-            <!-- Download Buttons -->
-            <div class="export-actions">
-              <button id="download-xlsx-btn" class="btn btn-emerald">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Download Formatted Excel (.XLSX)
-              </button>
-              <button id="download-csv-btn" class="btn btn-outline">CSV</button>
-              <button id="download-json-btn" class="btn btn-outline">JSON</button>
-            </div>
+        <div class="result-grid">
+          <div class="result-item">
+            <span class="result-item-label">NPI Number</span>
+            <span class="result-item-val" id="resNpi">--</span>
           </div>
-
-          <!-- Table Filter & Search Controls -->
-          <div class="table-controls">
-            <div class="search-box">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input type="text" id="table-search-input" placeholder="Search provider name, city, NPI...">
-            </div>
-
-            <div class="filter-group">
-              <label>Filter:</label>
-              <select id="table-filter-select" class="form-select">
-                <option value="all">All Rows</option>
-                <option value="verified">Status: Verified</option>
-                <option value="invalid">Invalid / Mismatched NPI Alerts</option>
-                <option value="cred_verified">Credential Verified</option>
-              </select>
-            </div>
+          <div class="result-item">
+            <span class="result-item-label">NPI Status</span>
+            <span class="result-item-val" id="resStatus">--</span>
           </div>
-
-          <!-- Interactive Results Data Table -->
-          <div class="table-wrapper">
-            <table class="data-table" id="results-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Provider Name</th>
-                  <th>Existing NPI</th>
-                  <th>Found NPI 1</th>
-                  <th>Credential</th>
-                  <th>Status</th>
-                  <th>NPI 1 Registry URL</th>
-                  <th>Facility / Profile URL</th>
-                </tr>
-              </thead>
-              <tbody id="table-body">
-                <!-- Rows injected dynamically -->
-              </tbody>
-            </table>
+          <div class="result-item">
+            <span class="result-item-label">Entity Type</span>
+            <span class="result-item-val" id="resEntity">--</span>
+          </div>
+          <div class="result-item">
+            <span class="result-item-label">Credential</span>
+            <span class="result-item-val" id="resCred">--</span>
+          </div>
+          <div class="result-item">
+            <span class="result-item-label">Match Confidence</span>
+            <span class="result-item-val" id="resConfidence">--</span>
+          </div>
+          <div class="result-item">
+            <span class="result-item-label">Phone</span>
+            <span class="result-item-val" id="resPhone">--</span>
+          </div>
+          <div class="result-item" style="grid-column: span 2;">
+            <span class="result-item-label">Address</span>
+            <span class="result-item-val" id="resAddress">--</span>
+          </div>
+          <div class="result-item" style="grid-column: span 2;">
+            <span class="result-item-label">Validation Notes</span>
+            <span class="result-item-val" id="resNotes" style="font-size: 0.85rem; font-weight: 500;">--</span>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  </main>
+</div>
 
-      <!-- TAB 2: SINGLE PROVIDER SANDBOX -->
-      <section id="single-tab" class="tab-content hidden">
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <h2>Single Provider Lookup Sandbox</h2>
-              <p class="subtitle">Test individual provider verification against NPPES Registry and Web Scraper instantly.</p>
-            </div>
-          </div>
+<script>
+let currentSessionId = null;
+let currentOriginalFilename = "provider_output";
 
-          <form id="single-lookup-form" class="single-form">
-            <div class="form-grid">
-              <div class="form-group span-2">
-                <label>Provider Name / Raw Name <span class="req">*</span></label>
-                <input type="text" id="sp-name" class="form-input" placeholder="e.g. KRISTY GOODNOUGH, 8042 (new) or JOHN DOE, MD" required>
-              </div>
+function switchTab(tab) {
+  document.getElementById('tabBtnBulk').classList.toggle('active', tab === 'bulk');
+  document.getElementById('tabBtnSingle').classList.toggle('active', tab === 'single');
+  document.getElementById('tabBulkView').style.display = tab === 'bulk' ? 'block' : 'none';
+  document.getElementById('tabSingleView').style.display = tab === 'single' ? 'block' : 'none';
+}
 
-              <div class="form-group">
-                <label>First Name</label>
-                <input type="text" id="sp-firstname" class="form-input" placeholder="e.g. KRISTY">
-              </div>
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  uploadFile(file);
+}
 
-              <div class="form-group">
-                <label>Last Name</label>
-                <input type="text" id="sp-lastname" class="form-input" placeholder="e.g. GOODNOUGH">
-              </div>
+function uploadFile(file) {
+  const formData = new FormData();
+  formData.append('file', file);
 
-              <div class="form-group">
-                <label>Organization / Practice</label>
-                <input type="text" id="sp-org" class="form-input" placeholder="e.g. Privia Health">
-              </div>
+  document.getElementById('dropzoneTitle').innerText = "Uploading " + file.name + "...";
 
-              <div class="form-group">
-                <label>Existing NPI (Optional)</label>
-                <input type="text" id="sp-npi" class="form-input" placeholder="e.g. 1649495409">
-              </div>
-
-              <div class="form-group">
-                <label>City</label>
-                <input type="text" id="sp-city" class="form-input" placeholder="e.g. OLNEY">
-              </div>
-
-              <div class="form-group">
-                <label>State Code</label>
-                <input type="text" id="sp-state" class="form-input" placeholder="e.g. MD">
-              </div>
-
-              <div class="form-group">
-                <label>Phone</label>
-                <input type="text" id="sp-phone" class="form-input" placeholder="e.g. (301) 774-0500">
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary" id="sp-submit-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"/>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                Verify Provider Now
-              </button>
-            </div>
-          </form>
-
-          <!-- Single Lookup Results Container -->
-          <div id="sp-result-container" class="sp-result-container hidden">
-            <h3>Verification Result Breakdown</h3>
-            <div id="sp-result-content" class="sp-result-grid"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 3: USER GUIDE -->
-      <section id="guide-tab" class="tab-content hidden">
-        <div class="card guide-card">
-          <h2>Application Workflow & Output Specifications</h2>
-          <div class="guide-grid">
-            <div class="guide-box">
-              <div class="guide-num">1</div>
-              <h3>Input Excel / CSV Requirements</h3>
-              <p>Supports files with columns like <code>PENDINGCPNAME</code>, <code>FIRSTNAME</code>, <code>LASTNAME</code>, <code>NPI</code>, <code>Credental</code>, <code>STATE</code>, <code>CITY</code>, <code>ADDRESS</code>, and <code>PHONE</code>.</p>
-            </div>
-
-            <div class="guide-box">
-              <div class="guide-num">2</div>
-              <h3>Automated Verification Rules</h3>
-              <ul>
-                <li><strong>NPI Validation:</strong> Validates existing 10-digit NPIs against NPPES Registry API, detecting deactivated or mismatched Org NPIs (NPI-2).</li>
-                <li><strong>NPI 1 Search:</strong> Finds individual provider NPI (NPI-1) using name and location fallback logic.</li>
-                <li><strong>Credential Extraction:</strong> Searches web sources and embedded text for credentials (MD, DO, APRN-CNP, FNP-BC, PA-C, LCSW, etc.).</li>
-              </ul>
-            </div>
-
-            <div class="guide-box">
-              <div class="guide-num">3</div>
-              <h3>Professional Excel Output (.XLSX)</h3>
-              <p>The exported Excel file includes:</p>
-              <ul>
-                <li>Dark Navy Header styling (<code>#1E293B</code>) with bold white text.</li>
-                <li>Red cell highlighting (<code>#FCE8E6</code> fill + <code>#991B1B</code> bold font) for invalid or mismatched NPIs.</li>
-                <li>Clickable hyperlinks for <code>Url</code> and <code>NPI 1 Url</code>.</li>
-                <li>Auto-adjusted column widths and gridlines.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <script>
-/**
- * Provider NPI & Credential Verification Suite - Client Application
- */
-
-document.addEventListener("DOMContentLoaded", () => {
-  // Navigation Tabs
-  const tabBtns = document.querySelectorAll(".tab-btn");
-  const tabContents = document.querySelectorAll(".tab-content");
-
-  tabBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const targetTab = btn.getAttribute("data-tab");
-
-      tabBtns.forEach(b => b.classList.remove("active"));
-      tabContents.forEach(c => c.classList.add("hidden"));
-
-      btn.classList.add("active");
-      document.getElementById(targetTab).classList.remove("hidden");
-    });
-  });
-
-  // Global State
-  let currentSessionId = null;
-  let eventSource = null;
-  let processedRows = [];
-  let totalRowsCount = 0;
-  let verifiedCount = 0;
-  let credFoundCount = 0;
-  let invalidNpiCount = 0;
-
-  // DOM Elements
-  const dropZone = document.getElementById("drop-zone");
-  const fileInput = document.getElementById("file-input");
-  const loadSampleBtn = document.getElementById("load-sample-btn");
-  const fileSummary = document.getElementById("file-summary");
-  const fileNameText = document.getElementById("file-name-text");
-  const fileRowsText = document.getElementById("file-rows-text");
-  const startVerifyBtn = document.getElementById("start-verify-btn");
-
-  const progressCard = document.getElementById("progress-card");
-  const progressFill = document.getElementById("progress-fill");
-  const progressPercentage = document.getElementById("progress-percentage");
-  const progressCounts = document.getElementById("progress-counts");
-  const progressStatusBadge = document.getElementById("progress-status-badge");
-  const logConsole = document.getElementById("log-console");
-
-  const statTotal = document.getElementById("stat-total");
-  const statVerified = document.getElementById("stat-verified");
-  const statCredFound = document.getElementById("stat-cred-found");
-  const statInvalidNpi = document.getElementById("stat-invalid-npi");
-
-  const resultsCard = document.getElementById("results-card");
-  const tableBody = document.getElementById("table-body");
-  const tableSearchInput = document.getElementById("table-search-input");
-  const tableFilterSelect = document.getElementById("table-filter-select");
-
-  const downloadXlsxBtn = document.getElementById("download-xlsx-btn");
-  const downloadCsvBtn = document.getElementById("download-csv-btn");
-  const downloadJsonBtn = document.getElementById("download-json-btn");
-
-  // Single Lookup Sandbox
-  const singleForm = document.getElementById("single-lookup-form");
-  const spSubmitBtn = document.getElementById("sp-submit-btn");
-  const spResultContainer = document.getElementById("sp-result-container");
-  const spResultContent = document.getElementById("sp-result-content");
-
-  // Drag & Drop Handlers
-  dropZone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropZone.classList.add("drag-over");
-  });
-
-  dropZone.addEventListener("dragleave", () => {
-    dropZone.classList.remove("drag-over");
-  });
-
-  dropZone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropZone.classList.remove("drag-over");
-
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileUpload(e.dataTransfer.files[0]);
+  fetch('/api/upload', {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      alert("Upload failed: " + data.error);
+      document.getElementById('dropzoneTitle').innerText = "Drop CSV or Excel (.xlsx, .xls) file here";
+      return;
     }
-  });
-
-  fileInput.addEventListener("change", (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFileUpload(e.target.files[0]);
-    }
-  });
-
-  loadSampleBtn.addEventListener("click", () => {
-    appendLog("info", "[System] Requesting sample dataset load...");
-    fetch("/api/sample")
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          alert("Error loading sample: " + data.error);
-          return;
-        }
-        setupSessionUI(data);
-        appendLog("success", `[System] Loaded sample dataset (${data.row_count} rows).`);
-      })
-      .catch(err => alert("Error: " + err));
-  });
-
-  function handleFileUpload(file) {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    appendLog("info", `[Upload] Uploading ${file.name}...`);
-
-    fetch("/api/upload", {
-      method: "POST",
-      body: formData
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          alert("Upload failed: " + data.error);
-          return;
-        }
-        setupSessionUI(data);
-        appendLog("success", `[Upload] Successfully parsed ${data.filename} (${data.row_count} rows).`);
-      })
-      .catch(err => alert("Upload error: " + err));
-  }
-
-  function setupSessionUI(data) {
     currentSessionId = data.session_id;
-    totalRowsCount = data.row_count;
-    fileNameText.textContent = data.filename;
-    fileRowsText.textContent = `${data.row_count} provider rows ready`;
+    currentOriginalFilename = data.filename ? data.filename.split('.')[0] : "provider_output";
+    document.getElementById('dropzoneTitle').innerText = "Loaded: " + data.filename + " (" + data.row_count + " rows)";
+    document.getElementById('btnStartProcess').style.display = 'inline-flex';
+    document.getElementById('tableTitleText').innerText = "Uploaded Data Preview";
+    renderPreviewTable(data.columns, data.preview, [], [], {});
+  })
+  .catch(err => {
+    alert("Error uploading file: " + err);
+  });
+}
 
-    fileSummary.classList.remove("hidden");
-    resultsCard.classList.add("hidden");
-    progressCard.classList.add("hidden");
+function loadSampleData() {
+  fetch('/api/sample')
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      alert("Failed to load sample: " + data.error);
+      return;
+    }
+    currentSessionId = data.session_id;
+    currentOriginalFilename = "sample_input";
+    document.getElementById('dropzoneTitle').innerText = "Loaded Sample: " + data.filename + " (" + data.row_count + " rows)";
+    document.getElementById('btnStartProcess').style.display = 'inline-flex';
+    document.getElementById('tableTitleText').innerText = "Uploaded Data Preview";
+    renderPreviewTable(data.columns, data.preview, [], [], {});
+  });
+}
 
-    // Reset stats
-    processedRows = [];
-    verifiedCount = 0;
-    credFoundCount = 0;
-    invalidNpiCount = 0;
+function renderPreviewTable(columns, rows, invalidRows, mismatchRows, notesMap) {
+  invalidRows = invalidRows || [];
+  mismatchRows = mismatchRows || [];
+  notesMap = notesMap || {};
+  const highlightSet = new Set([...invalidRows, ...mismatchRows]);
 
-    statTotal.textContent = totalRowsCount;
-    statVerified.textContent = 0;
-    statCredFound.textContent = 0;
-    statInvalidNpi.textContent = 0;
-  }
+  const headerRow = document.getElementById('tableHeaderRow');
+  const tbody = document.getElementById('tableBody');
+  headerRow.innerHTML = '';
+  tbody.innerHTML = '';
 
-  // Start Verification Stream
-  startVerifyBtn.addEventListener("click", () => {
-    if (!currentSessionId) return;
-
-    // Reset UI
-    progressCard.classList.remove("hidden");
-    resultsCard.classList.remove("hidden");
-    tableBody.innerHTML = "";
-    logConsole.innerHTML = "";
-
-    progressFill.style.width = "0%";
-    progressPercentage.textContent = "0%";
-    progressCounts.textContent = `0 / ${totalRowsCount} Processed`;
-    progressStatusBadge.textContent = "Processing Batch...";
-    progressStatusBadge.className = "badge badge-processing";
-
-    appendLog("info", "[Pipeline] Initializing NPPES Registry & Web Scraper stream...");
-
-    if (eventSource) eventSource.close();
-
-    eventSource = new EventSource(`/api/process_stream/${currentSessionId}`);
-
-    eventSource.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-
-      if (msg.type === "progress") {
-        updateProgress(msg);
-      } else if (msg.type === "finished") {
-        eventSource.close();
-        progressFill.style.width = "100%";
-        progressPercentage.textContent = "100%";
-        progressStatusBadge.textContent = "Verification Complete";
-        progressStatusBadge.className = "badge badge-success";
-        appendLog("success", `[Pipeline] Batch verification completed successfully! Invalid/Mismatched NPIs: ${msg.invalid_count + msg.mismatch_count}`);
-      } else if (msg.type === "error") {
-        eventSource.close();
-        progressStatusBadge.textContent = "Error Occurred";
-        progressStatusBadge.className = "badge badge-danger";
-        appendLog("error", `[Pipeline Error] ${msg.message}`);
-      }
-    };
-
-    eventSource.onerror = (err) => {
-      eventSource.close();
-      appendLog("error", "[Connection Error] SSE stream closed unexpectedly.");
-    };
+  columns.forEach(col => {
+    const th = document.createElement('th');
+    th.innerText = col;
+    headerRow.appendChild(th);
   });
 
-  function updateProgress(msg) {
-    const row = msg.row_summary;
-    processedRows.push(row);
-
-    // Update Progress Bar
-    progressFill.style.width = `${msg.percent}%`;
-    progressPercentage.textContent = `${msg.percent}%`;
-    progressCounts.textContent = `${msg.current} / ${msg.total} Processed`;
-
-    // Update Stats
-    if (row.status === "Verified") verifiedCount++;
-    if (row.credential && row.credential !== "Unable to verify") credFoundCount++;
-    if (row.is_invalid_npi || row.is_mismatch_npi) invalidNpiCount++;
-
-    statVerified.textContent = verifiedCount;
-    statCredFound.textContent = credFoundCount;
-    statInvalidNpi.textContent = invalidNpiCount;
-
-    // Log Activity
-    const alertTag = (row.is_invalid_npi || row.is_mismatch_npi) ? " [ALERT: NPI Issue]" : "";
-    appendLog(
-      row.is_invalid_npi || row.is_mismatch_npi ? "warn" : "info",
-      `[Row ${row.row_index + 1}] ${row.provider_name} -> NPI1: ${row.npi1} | Cred: ${row.credential}${alertTag}`
-    );
-
-    // Append to Table
-    renderTableRow(row);
-  }
-
-  function renderTableRow(row) {
-    const tr = document.createElement("tr");
-    if (row.is_invalid_npi || row.is_mismatch_npi) {
-      tr.classList.add("row-invalid");
-    }
-
-    const npiDisplay = row.npi ? row.npi : "<span class='text-dim'>Blank</span>";
-    const npi1Display = row.npi1 !== "Not Found" ? `<strong>${row.npi1}</strong>` : "<span class='badge badge-danger'>Not Found</span>";
-    const credDisplay = (row.credential && row.credential !== "Unable to verify")
-      ? `<span class='badge badge-success'>${row.credential}</span>`
-      : "<span class='badge badge-warning'>Unable to verify</span>";
-
-    const statusDisplay = row.status === "Verified"
-      ? "<span class='badge badge-success'>Verified</span>"
-      : "<span class='badge badge-danger'>Not Verified</span>";
-
-    const npi1UrlLink = row.npi1_url
-      ? `<a href="${row.npi1_url}" target="_blank" class="link-badge">NPPES Link</a>`
-      : "-";
-
-    const webUrlLink = row.url
-      ? `<a href="${row.url}" target="_blank" class="link-badge">Profile Page</a>`
-      : "-";
-
-    tr.innerHTML = `
-      <td>${row.row_index + 1}</td>
-      <td><strong>${escapeHtml(row.provider_name)}</strong></td>
-      <td>${npiDisplay}</td>
-      <td>${npi1Display}</td>
-      <td>${credDisplay}</td>
-      <td>${statusDisplay}</td>
-      <td>${npi1UrlLink}</td>
-      <td>${webUrlLink}</td>
-    `;
-
-    tableBody.appendChild(tr);
-  }
-
-  // Filter & Search Controls
-  tableSearchInput.addEventListener("input", filterTableRows);
-  tableFilterSelect.addEventListener("change", filterTableRows);
-
-  function filterTableRows() {
-    const query = tableSearchInput.value.toLowerCase();
-    const filter = tableFilterSelect.value;
-
-    const trs = tableBody.querySelectorAll("tr");
-    trs.forEach((tr, idx) => {
-      const rowData = processedRows[idx];
-      if (!rowData) return;
-
-      let matchesSearch = true;
-      if (query) {
-        const text = tr.textContent.toLowerCase();
-        matchesSearch = text.includes(query);
+  rows.forEach((row, rowIdx) => {
+    const tr = document.createElement('tr');
+    columns.forEach(col => {
+      const td = document.createElement('td');
+      let val = row[col];
+      if (val === null || val === undefined) val = '';
+      
+      // Render clean badge formatting for status / confidence columns
+      if (col === 'NPI Status') {
+        if (val === 'Active') td.innerHTML = `<span class="badge badge-green">Active</span>`;
+        else if (val === 'Entity Type Mismatch') td.innerHTML = `<span class="badge badge-red">Entity Mismatch</span>`;
+        else if (val === 'Invalid Format') td.innerHTML = `<span class="badge badge-red">Invalid Format</span>`;
+        else if (val === 'Inactive') td.innerHTML = `<span class="badge badge-amber">Inactive</span>`;
+        else td.innerText = val;
+      } else if (col === 'Match Confidence') {
+        if (val === 'High') td.innerHTML = `<span class="badge badge-green">High</span>`;
+        else if (val === 'Medium') td.innerHTML = `<span class="badge badge-cyan">Medium</span>`;
+        else if (val === 'Low' || val === 'Manual Review') td.innerHTML = `<span class="badge badge-amber">${val}</span>`;
+        else td.innerText = val;
+      } else if (col === 'NPI 1' || col === 'NPI1') {
+        if (val && val !== 'NPI not found' && !val.startsWith('Multiple')) {
+          td.innerHTML = `<strong style="color: #38bdf8; font-family: var(--font-mono);">${val}</strong>`;
+        } else {
+          td.innerText = val;
+        }
+      } else if (col === 'Credential' || col === 'Credental') {
+        if (val && val !== 'Credential not confirmed') {
+          td.innerHTML = `<strong style="color: #34d399;">${val}</strong>`;
+        } else {
+          td.innerText = val;
+        }
+      } else {
+        td.innerText = val;
       }
 
-      let matchesFilter = true;
-      if (filter === "verified") {
-        matchesFilter = rowData.status === "Verified";
-      } else if (filter === "invalid") {
-        matchesFilter = rowData.is_invalid_npi || rowData.is_mismatch_npi;
-      } else if (filter === "cred_verified") {
-        matchesFilter = rowData.credential && rowData.credential !== "Unable to verify";
+      if (col === 'NPI' && highlightSet.has(rowIdx)) {
+        td.classList.add('cell-highlight-red');
+        if (notesMap[rowIdx]) {
+          td.title = notesMap[rowIdx];
+        }
       }
 
-      tr.style.display = (matchesSearch && matchesFilter) ? "" : "none";
+      tr.appendChild(td);
     });
-  }
-
-  // Exports
-  downloadXlsxBtn.addEventListener("click", () => {
-    if (!currentSessionId) return;
-    window.location.href = `/api/download/${currentSessionId}?format=xlsx`;
+    tbody.appendChild(tr);
   });
 
-  downloadCsvBtn.addEventListener("click", () => {
-    if (!currentSessionId) return;
-    window.location.href = `/api/download/${currentSessionId}?format=csv`;
-  });
+  document.getElementById('resultsCard').style.display = 'block';
+}
 
-  downloadJsonBtn.addEventListener("click", () => {
-    if (!currentSessionId) return;
-    window.location.href = `/api/download/${currentSessionId}?format=json`;
-  });
+function startVerification() {
+  if (!currentSessionId) return;
 
-  // Single Lookup Sandbox
-  singleForm.addEventListener("submit", (e) => {
-    e.preventDefault();
+  document.getElementById('progressContainer').style.display = 'block';
+  document.getElementById('summaryDashboard').style.display = 'block';
 
-    const payload = {
-      provider_name: document.getElementById("sp-name").value,
-      firstname: document.getElementById("sp-firstname").value,
-      lastname: document.getElementById("sp-lastname").value,
-      organization: document.getElementById("sp-org").value,
-      existing_npi: document.getElementById("sp-npi").value,
-      city: document.getElementById("sp-city").value,
-      state: document.getElementById("sp-state").value,
-      phone: document.getElementById("sp-phone").value
-    };
+  const eventSource = new EventSource('/api/process_stream/' + currentSessionId);
 
-    spSubmitBtn.disabled = true;
-    spSubmitBtn.innerHTML = "Searching...";
+  eventSource.onmessage = function(e) {
+    const event = JSON.parse(e.data);
 
-    fetch("/api/verify_single", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-      .then(res => res.json())
-      .then(data => {
-        spSubmitBtn.disabled = false;
-        spSubmitBtn.innerHTML = "Verify Provider Now";
-        renderSingleResult(data);
-      })
-      .catch(err => {
-        spSubmitBtn.disabled = false;
-        spSubmitBtn.innerHTML = "Verify Provider Now";
-        alert("Error during verification: " + err);
-      });
-  });
+    if (event.type === 'progress') {
+      const pct = event.percent;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressPercent').innerText = pct + '%';
+      document.getElementById('progressStatusText').innerText = "Processing record " + event.current + " of " + event.total + "...";
 
-  function renderSingleResult(data) {
-    spResultContainer.classList.remove("hidden");
-    const v = data.verification || {};
-    const npiVal = data.npi_validation || {};
+      if (event.stats) {
+        updateStats(event.stats);
+      }
+    } else if (event.type === 'finished') {
+      eventSource.close();
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('progressStatusText').innerText = "Verification Complete!";
+      document.getElementById('tableTitleText').innerText = "Processed Verification Results";
 
-    let npiStatusBadge = npiVal.valid
-      ? `<span class="badge badge-success">Valid ${npiVal.npi_type || 'NPI'}</span>`
-      : `<span class="badge badge-danger">${npiVal.status || 'Invalid'}</span>`;
+      const downloadXlsxBtn = document.getElementById('btnDownloadXlsx');
+      const downloadCsvBtn = document.getElementById('btnDownloadCsv');
+      const baseFilename = currentOriginalFilename + '_verified';
 
-    if (!data.input.existing_npi) {
-      npiStatusBadge = `<span class="badge badge-warning">Not Provided</span>`;
+      downloadXlsxBtn.href = '/api/download/' + currentSessionId + '?format=xlsx';
+      downloadXlsxBtn.setAttribute('download', baseFilename + '.xlsx');
+
+      downloadCsvBtn.href = '/api/download/' + currentSessionId + '?format=csv';
+      downloadCsvBtn.setAttribute('download', baseFilename + '.csv');
+
+      if (event.stats) {
+        updateStats(event.stats);
+        if (event.stats.processing_time_seconds) {
+          document.getElementById('processingTimeNotice').innerText = "Completed in " + event.stats.processing_time_seconds + " seconds";
+        }
+      }
+
+      // Fetch completed results and re-render full processed table with priority columns first
+      fetchResultsTable();
+    } else if (event.type === 'error') {
+      eventSource.close();
+      alert("Processing error: " + event.message);
     }
+  };
+}
 
-    spResultContent.innerHTML = `
-      <div class="res-box">
-        <span class="res-label">Verification Status</span>
-        <div class="res-val">${v.status === 'Verified' ? '<span class="badge badge-success">Verified</span>' : '<span class="badge badge-danger">Not Verified</span>'}</div>
-      </div>
-      <div class="res-box">
-        <span class="res-label">Existing NPI Check</span>
-        <div class="res-val">${npiStatusBadge}</div>
-        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">${npiVal.remarks || ''}</p>
-      </div>
-      <div class="res-box">
-        <span class="res-label">Found NPI-1 Identifier</span>
-        <div class="res-val">${v.npi !== 'Not Found' ? v.npi : 'Not Found'}</div>
-        ${v.npi_url ? `<a href="${v.npi_url}" target="_blank" class="link-badge" style="margin-top:6px;">View Registry Profile</a>` : ''}
-      </div>
-      <div class="res-box">
-        <span class="res-label">Verified Credential</span>
-        <div class="res-val">${v.credential !== 'Unable to verify' ? `<span class="badge badge-success">${v.credential}</span>` : 'Unable to verify'}</div>
-        ${v.source_url ? `<a href="${v.source_url}" target="_blank" class="link-badge" style="margin-top:6px;">View Source Web Page</a>` : ''}
-      </div>
-    `;
+function fetchResultsTable() {
+  if (!currentSessionId) return;
+  fetch('/api/results/' + currentSessionId)
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      renderPreviewTable(
+        data.columns,
+        data.rows,
+        data.invalid_npi_rows,
+        data.mismatch_rows,
+        data.npi_notes_map
+      );
+    }
+  });
+}
+
+function updateStats(stats) {
+  document.getElementById('statTotal').innerText = stats.total_records || 0;
+  document.getElementById('statValid').innerText = stats.valid_active_npis || 0;
+  document.getElementById('statInvalid').innerText = stats.invalid_format_npis || 0;
+  document.getElementById('statNotFound').innerText = stats.npis_not_found || 0;
+  document.getElementById('statMismatch').innerText = stats.entity_mismatches || 0;
+  document.getElementById('statFoundNpi').innerText = stats.npis_found || 0;
+  document.getElementById('statCredConfirmed').innerText = stats.credentials_confirmed || 0;
+  document.getElementById('statManualReview').innerText = stats.manual_review_required || 0;
+}
+
+function handleSingleSearch(e) {
+  e.preventDefault();
+  const data = {
+    provider_name: document.getElementById('sProviderName').value,
+    organization: document.getElementById('sOrgName').value,
+    npi: document.getElementById('sNpi').value,
+    phone: document.getElementById('sPhone').value,
+    address: document.getElementById('sAddress').value,
+    city: document.getElementById('sCity').value,
+    state: document.getElementById('sState').value
+  };
+
+  const btn = document.getElementById('btnSingleSearch');
+  btn.innerText = "Searching...";
+  btn.disabled = true;
+
+  fetch('/api/verify_single', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(res => {
+    btn.innerText = "Search NPPES Registry";
+    btn.disabled = false;
+
+    if (res.error) {
+      alert("Search failed: " + res.error);
+      return;
+    }
+    renderSingleResult(res.result);
+  })
+  .catch(err => {
+    btn.innerText = "Search NPPES Registry";
+    btn.disabled = false;
+    alert("Search error: " + err);
+  });
+}
+
+function renderSingleResult(res) {
+  document.getElementById('singleResultCard').style.display = 'block';
+  document.getElementById('resName').innerText = res.provider_name;
+  document.getElementById('resOrg').innerText = res.organization || "No organization specified";
+
+  document.getElementById('resNpi').innerText = res.npi || res.npi1 || "N/A";
+  document.getElementById('resStatus').innerText = res.npi_status || "N/A";
+  document.getElementById('resEntity').innerText = res.entity_type || "N/A";
+  document.getElementById('resCred').innerText = res.credential || "Credential not confirmed";
+  document.getElementById('resConfidence').innerText = res.match_confidence || "N/A";
+  document.getElementById('resPhone').innerText = res.phone || "N/A";
+  document.getElementById('resAddress').innerText = (res.address !== 'N/A' ? res.address + ', ' : '') + (res.city !== 'N/A' ? res.city + ', ' : '') + (res.state !== 'N/A' ? res.state : '');
+  document.getElementById('resNotes').innerText = res.validation_notes || "N/A";
+
+  const badges = document.getElementById('resBadges');
+  badges.innerHTML = '';
+
+  if (res.npi_status === 'Active') {
+    badges.innerHTML += `<span class="badge badge-green">Active NPI</span>`;
+  } else if (res.npi_status === 'Entity Type Mismatch') {
+    badges.innerHTML += `<span class="badge badge-red">Entity Mismatch</span>`;
+  } else if (res.npi_status === 'Invalid Format') {
+    badges.innerHTML += `<span class="badge badge-red">Invalid Format</span>`;
   }
 
-  // Utilities
-  function appendLog(type, text) {
-    const line = document.createElement("div");
-    line.className = `log-line ${type}`;
-    const time = new Date().toLocaleTimeString();
-    line.textContent = `[${time}] ${text}`;
-    logConsole.appendChild(line);
-    logConsole.scrollTop = logConsole.scrollHeight;
+  if (res.match_confidence === 'High') {
+    badges.innerHTML += `<span class="badge badge-cyan">High Match Confidence</span>`;
   }
+}
 
-  function escapeHtml(str) {
-    if (!str) return "";
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function clearSingleForm() {
+  document.getElementById('singleSearchForm').reset();
+  document.getElementById('singleResultCard').style.display = 'none';
+}
+
+// Handle auto-load if session_id is present in URL
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const sid = urlParams.get('session_id');
+  if (sid) {
+    currentSessionId = sid;
+    document.getElementById('btnStartProcess').style.display = 'inline-flex';
+    document.getElementById('summaryDashboard').style.display = 'block';
+    fetchResultsTable();
   }
 });
-  </script>
+</script>
 </body>
 </html>

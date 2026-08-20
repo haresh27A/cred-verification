@@ -1,7 +1,8 @@
 """
 utils.py
 --------
-Shared utility functions for Provider Verification.
+Shared utility functions for Provider Verification & Normalization.
+Credential and NPI Finder
 """
 
 import logging
@@ -42,8 +43,7 @@ NPI_API_BASE_URL = "https://npiregistry.cms.hhs.gov/api/"
 NPI_REGISTRY_SEARCH_URL = "https://npiregistry.cms.hhs.gov/search"
 
 MATCH_THRESHOLD = 0.60
-REQUEST_TIMEOUT = 15
-REQUEST_DELAY = 0.5
+REQUEST_TIMEOUT = 10
 MAX_RESULTS = 20
 
 USER_AGENT = (
@@ -55,10 +55,15 @@ USER_AGENT = (
 KNOWN_CREDENTIALS = [
     'PA-C', 'FNP-BC', 'FNP-C', 'APRN-CNP', 'APRN', 'APNP', 'APN', 'LCSW', 'LCPC', 'LMFT',
     'CRNA', 'CNP', 'FNP', 'DNP', 'MSW', 'RDN', 'LPC', 'MD', 'DO', 'NP', 'PA', 'RN',
-    'DDS', 'DMD', 'OD', 'DC', 'PhD', 'RD', 'PT', 'MSPT', 'OCS', 'CMTPT'
+    'DDS', 'DMD', 'OD', 'DC', 'PhD', 'RD', 'PT', 'MSPT', 'OCS', 'CMTPT', 'BCBA', 'AUD', 'CRNP'
 ]
 
-ORG_KEYWORDS = ['INC', 'LLC', 'CLINIC', 'HEALTHCARE', 'HEALTH', 'PC', 'ASSOCIATES', 'CENTER', 'GROUP', 'HOSPITAL', 'SYSTEM', 'CARE']
+ORG_KEYWORDS = [
+    'INC', 'LLC', 'CLINIC', 'HEALTHCARE', 'HEALTH', 'PC', 'ASSOCIATES', 'CENTER', 'GROUP',
+    'HOSPITAL', 'SYSTEM', 'CARE', 'MEDICAL', 'SERVICES', 'PRACTICE', 'USA', 'CORP',
+    'CORPORATION', 'PARTNERS', 'FOUNDATION', 'SPECIALISTS', 'FACILITY', 'COMMUNITY', 'PHYSICIANS',
+    'THERAPY', 'MEDICINE', 'URGENT', 'DIAGNOSTICS', 'LABORATORY', 'LABS', 'SOLUTIONS'
+]
 
 
 # ----------------------------------------
@@ -105,14 +110,80 @@ def normalize_text(text):
     return text.strip()
 
 
+def normalize_phone(phone):
+    """
+    Remove punctuation and spaces from phone number, returning clean digits only.
+    """
+    if not phone:
+        return ""
+    digits = re.sub(r"\D", "", str(phone))
+    return digits
+
+
+def phone_matches(phone1, phone2):
+    """
+    Compare two phone numbers using normalized digits.
+    Returns True if last 10 digits match or last 7 digits match.
+    """
+    p1 = normalize_phone(phone1)
+    p2 = normalize_phone(phone2)
+    if not p1 or not p2:
+        return False
+    if p1 == p2:
+        return True
+    if len(p1) >= 10 and len(p2) >= 10:
+        return p1[-10:] == p2[-10:]
+    if len(p1) >= 7 and len(p2) >= 7:
+        return p1[-7:] == p2[-7:]
+    return False
+
+
+ADDRESS_ABBR = {
+    r'\bST\b': 'STREET',
+    r'\bAVE\b': 'AVENUE',
+    r'\bDR\b': 'DRIVE',
+    r'\bRD\b': 'ROAD',
+    r'\bBLVD\b': 'BOULEVARD',
+    r'\bPKWY\b': 'PARKWAY',
+    r'\bSTE\b': 'SUITE',
+    r'\bSUITE\b': 'SUITE',
+    r'\bCT\b': 'COURT',
+    r'\bLN\b': 'LANE',
+    r'\bHWY\b': 'HIGHWAY',
+    r'\bCIR\b': 'CIRCLE',
+    r'\bBLDG\b': 'BUILDING',
+    r'\bFL\b': 'FLOOR',
+    r'\bPL\b': 'PLACE',
+    r'\bTER\b': 'TERRACE',
+    r'\bN\b': 'NORTH',
+    r'\bS\b': 'SOUTH',
+    r'\bE\b': 'EAST',
+    r'\bW\b': 'WEST',
+}
+
+def normalize_address(address):
+    """
+    Standardize address capitalization, whitespace, and common abbreviations.
+    """
+    if not address:
+        return ""
+    addr = str(address).upper().strip()
+    addr = re.sub(r"[^\w\s#\-]", " ", addr)
+    for pattern, replacement in ADDRESS_ABBR.items():
+        addr = re.sub(pattern, replacement, addr)
+    addr = re.sub(r"\s+", " ", addr).strip()
+    return addr
+
+
 def is_organization_name(name):
     """
     Check whether name refers to an Organization rather than an Individual Provider.
     """
     if not name:
         return False
-    words = re.findall(r'\b[A-Z0-9]+\b', str(name).upper())
-    for kw in ['INC', 'LLC', 'CLINIC', 'HEALTHCARE', 'PC', 'ASSOCIATES', 'HOSPITAL', 'SYSTEM']:
+    upper_name = str(name).upper()
+    words = re.findall(r'\b[A-Z0-9]+\b', upper_name)
+    for kw in ORG_KEYWORDS:
         if kw in words:
             return True
     return False
@@ -126,18 +197,14 @@ def clean_provider_name_full(raw_name, firstname="", lastname=""):
     raw_name = str(raw_name or '').strip()
     firstname = str(firstname or '').strip()
     lastname = str(lastname or '').strip()
-    
+
     # Extract embedded credential from raw name if present
-    embedded_cred = ""
-    for cred in ['APRN-CNP', 'FNP-BC', 'FNP-C', 'PA-C', 'APNP', 'DNP', 'APN', 'LCSW', 'MD', 'DO', 'NP', 'PA', 'RN', 'FNP']:
-        if re.search(r'\b' + re.escape(cred) + r'\b', raw_name, re.I):
-            embedded_cred = cred
-            break
-            
-    # Strip Athena tags like ', 8042 (new)' or ', 8042'
+    embedded_cred = extract_credential_from_text(raw_name)
+
+    # Strip Athena/EMR tags like ', 8042 (new)' or ', 8042'
     cleaned = re.sub(r',\s*\d+\s*\([^\)]+\)', '', raw_name).strip()
     cleaned = re.sub(r',\s*\d+$', '', cleaned).strip()
-    
+
     # Check if firstname and lastname exist in separate columns
     if firstname and lastname and len(firstname) > 1 and len(lastname) > 1:
         clean_name = f"{firstname} {lastname}"
@@ -153,11 +220,12 @@ def clean_provider_name_full(raw_name, firstname="", lastname=""):
                 clean_name = cleaned
         else:
             clean_name = cleaned
-            
+
     # Strip credential tokens from search name
-    search_name = re.sub(r'\b(MD|DO|NP|PA-C|PA|FNP-C|FNP-BC|FNP|DNP|APRN-CNP|APRN|RN|APNP|APN|LCSW|MSW|LPC|DDS|DMD)\b', '', clean_name, flags=re.I)
+    pattern = r'\b(' + '|'.join([re.escape(c) for c in KNOWN_CREDENTIALS]) + r')\b'
+    search_name = re.sub(pattern, '', clean_name, flags=re.I)
     search_name = re.sub(r'\s+', ' ', search_name).strip(' ,')
-    
+
     return search_name, embedded_cred
 
 
@@ -175,17 +243,20 @@ def split_provider_name(full_name):
 
 
 def extract_credential_from_text(text):
+    """
+    Extract provider credential from string, returning standardized uppercase token.
+    """
     if not text:
         return ""
-    for cred in ['PA-C', 'FNP-BC', 'FNP-C', 'APRN-CNP', 'APRN', 'APNP', 'APN', 'LCSW', 'LCPC', 'LMFT', 'CRNA', 'CNP', 'FNP', 'DNP', 'MD', 'DO', 'NP', 'PA', 'RN', 'DDS', 'DMD', 'OD', 'DC', 'PhD', 'PT', 'MSPT']:
-        if re.search(r'\b' + re.escape(cred) + r'\b', text, re.I):
+    # Sort known credentials by length descending to match longer tokens first (e.g. APRN-CNP before APRN)
+    sorted_creds = sorted(KNOWN_CREDENTIALS, key=len, reverse=True)
+    for cred in sorted_creds:
+        # Match with boundary, allowing optional periods like M.D. or D.O.
+        cred_pattern = r'\b' + r'\.?'.join(list(cred.replace('-', ''))) + r'\.?\b'
+        if re.search(cred_pattern, text, re.I):
             return cred.upper()
     return ""
 
-
-# ----------------------------------------
-# Helpers
-# ----------------------------------------
 
 def similarity_score(text1, text2):
     text1 = normalize_text(text1)
@@ -196,6 +267,9 @@ def similarity_score(text1, text2):
 
 
 def is_valid_npi(npi):
+    """
+    Validate that NPI contains exactly 10 numeric digits.
+    """
     if npi is None:
         return False
     npi_str = str(npi).strip()
@@ -208,4 +282,4 @@ def ensure_dir(folder):
     try:
         Path(folder).mkdir(parents=True, exist_ok=True)
     except (PermissionError, OSError):
-        pass
+        pass
